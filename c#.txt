@@ -1,0 +1,263 @@
+	  QLBanHangContext db = new QLBanHangContext();
+        public MainWindow()
+        {
+            InitializeComponent();
+        }
+
+        private void load_data(object sender, RoutedEventArgs e)
+        {
+            hienThiDuLieu();
+            hienThiCB();
+        }
+        private void hienThiDuLieu()
+        {
+            var query = from sp in db.SanPhams
+                        orderby sp.DonGia
+                        select new
+                        {
+                            sp.MaSp,
+                            sp.TenSp,
+                            sp.MaLoai,
+                            sp.SoLuong,
+                            sp.DonGia,
+                            ThanhTien = sp.SoLuong * sp.DonGia
+                        };
+            dtg.ItemsSource = query.ToList();
+        }
+        private void hienThiCB()
+        {
+            var query = from lsp in db.LoaiSanPhams
+                        select lsp;
+            cboxLoaiSP.ItemsSource = query.ToList();
+            cboxLoaiSP.DisplayMemberPath = "TenLoai";
+            cboxLoaiSP.SelectedValuePath = "MaLoai";
+            cboxLoaiSP.SelectedIndex = 0;
+        }
+        private bool checkDL()
+        {
+            string tb = "";
+            if (tbMaSP.Text == "" || tbTenSP.Text == "" || tbSoLuong.Text == "" || tbDonGia.Text == "") {
+                tb += "\n Ban can nhap day du du lieu!";
+            }
+            if (!Regex.IsMatch(tbDonGia.Text, @"\d+")) {
+                tb += "\n Don gia nhap vao phai la so!";
+            }
+            else {
+                int dg = int.Parse(tbDonGia.Text);
+                if (dg < 0)
+                    tb += "\n Don gia nhap vao phai la so duong!";
+            }
+            if (!Regex.IsMatch(tbSoLuong.Text, @"\d+")) {
+                tb += "\n So luong nhap vao phai la so!";
+            }
+            else {
+                int sl = int.Parse(tbSoLuong.Text);
+                if (sl < 0)
+                    tb += "\n So luong nhap vao phai la so duong!";
+            }
+            if (tb != "") {
+                MessageBox.Show(tb, "Thong bao", MessageBoxButton.OK, MessageBoxImage.Error);
+                return false;
+            }
+            return true;
+        }
+
+        private void clickThem(object sender, RoutedEventArgs e)
+        {
+            // Kiem tra khong cho nhap trung ma san pham
+            var query = db.SanPhams.SingleOrDefault(t => t.MaSp.Equals(tbMaSP.Text));
+            if (query != null) {
+                MessageBox.Show("San pham nay da ton tai!", "Thong bao");
+                hienThiDuLieu();
+            }
+            else {
+                try {
+                    if (checkDL()) {
+                        SanPham spMoi = new SanPham();
+                        spMoi.MaSp = tbMaSP.Text;
+                        spMoi.TenSp = tbTenSP.Text;
+                        spMoi.DonGia = int.Parse(tbDonGia.Text);
+                        spMoi.SoLuong = int.Parse(tbSoLuong.Text);
+                        LoaiSanPham itemSelected = (LoaiSanPham)cboxLoaiSP.SelectedItem;
+                        spMoi.MaLoai = itemSelected.MaLoai;
+                        db.SanPhams.Add(spMoi);
+                        db.SaveChanges();
+                        MessageBox.Show("Them thanh cong!", "Thong bao");
+                        hienThiDuLieu();
+                    }
+                }catch(Exception e1) {
+                    MessageBox.Show("Co loi khi them " + e1.Message, "Thong bao");
+                }
+            }
+        }
+
+        private void select_cell(object sender, SelectedCellsChangedEventArgs e)
+        {
+            if (dtg.SelectedItem != null) {
+                try {
+                    Type t = dtg.SelectedItem.GetType();
+                    PropertyInfo[] p = t.GetProperties(); 
+                    tbMaSP.Text = p[0].GetValue(dtg.SelectedValue).ToString();
+                    tbTenSP.Text = p[1].GetValue(dtg.SelectedValue).ToString();
+                    cboxLoaiSP.SelectedValue = p[2].GetValue(dtg.SelectedValue).ToString();
+                    tbSoLuong.Text = p[3].GetValue(dtg.SelectedValue).ToString();
+                    tbDonGia.Text = p[4].GetValue(dtg.SelectedValue).ToString();
+                }catch(Exception ex) {
+                    MessageBox.Show("Co loi khi chon hang " + ex.Message, "Thong bao");
+                }
+            }
+        }
+
+        private void clickSua(object sender, RoutedEventArgs e)
+        {
+            try {
+                var spSua = db.SanPhams.SingleOrDefault(t => t.MaSp.Equals(tbMaSP.Text));
+                if (spSua != null) {
+                    if (checkDL()) {
+                        spSua.TenSp = tbTenSP.Text;
+                        LoaiSanPham itemSelected = (LoaiSanPham)cboxLoaiSP.SelectedItem;
+                        spSua.MaLoai = itemSelected.MaLoai;
+                        spSua.DonGia = int.Parse(tbDonGia.Text);
+                        spSua.SoLuong = int.Parse(tbSoLuong.Text);
+                        db.SaveChanges();
+                        MessageBox.Show("Sua thanh cong!", "Thong bao");
+                        hienThiDuLieu();
+                    }
+                }
+                else {
+                    MessageBox.Show("Khong tim thay san pham can sua!");
+                }
+            }catch(Exception ex) {
+                MessageBox.Show("Co loi khi sua " + ex.Message, "Thong bao");
+            }
+        }
+
+        private void clickXoa(object sender, RoutedEventArgs e)
+        {
+            var spXoa = db.SanPhams.SingleOrDefault(t => t.MaSp.Equals(tbMaSP.Text));
+            if (spXoa != null) {
+                MessageBoxResult rs = MessageBox.Show("Ban co chac chan muon xoa?", "Thong bao", MessageBoxButton.YesNo);
+                if (rs == MessageBoxResult.Yes) {
+                    db.SanPhams.Remove(spXoa);
+                    db.SaveChanges();
+                    MessageBox.Show("Xoa thanh cong!", "Thong bao");
+                    hienThiDuLieu();
+                }
+            }
+            else {
+                MessageBox.Show("Khong co san pham nay de xoa!");
+            }
+        }
+
+        private void clickTim(object sender, RoutedEventArgs e)
+        {
+            var query = from sp in db.SanPhams
+                        where sp.MaLoai == cboxLoaiSP.SelectedValue.ToString()
+                        select new
+                        {
+                            sp.MaSp,
+                            sp.TenSp,
+                            sp.MaLoai,
+                            sp.SoLuong,
+                            sp.DonGia,
+                            ThanhTien = sp.SoLuong * sp.DonGia
+                        };
+            dtg.ItemsSource = query.ToList();
+        }
+
+        private void clickThongKe(object sender, RoutedEventArgs e)
+        {
+            Window1 window1= new Window1();
+            window1.Show();
+        }
+
+=====================
+private void load_data(object sender, RoutedEventArgs e)
+        {
+            QLBanHangContext db = new QLBanHangContext();
+            var query = from p in db.SanPhams
+                        join k in db.LoaiSanPhams
+                        on p.MaLoai equals k.MaLoai
+                        where p.MaLoai == "01"
+                        select new
+                        {
+                            p.MaSp,
+                            p.TenSp,
+                            k.TenLoai,
+                            p.DonGia,
+                            p.SoLuong,
+                            ThanhTien = p.DonGia * p.SoLuong
+                        };
+            dtg1.ItemsSource = query.ToList();
+        }
+==============================================================================================
+css
+===========
+  FontFamily="Times New Roman" FontSize="20" Loaded="load_data"
+        Title="MainWindow" Height="650" Width="800">
+    <StackPanel>
+        <!--Khai báo Style và Template trong StackPanel-->
+        <StackPanel.Resources>
+            <!--Trong trường hợp này, có 2 Style và 1 Template:-->
+            <!--(1) Style quy định về kiểu phông chữ, áp dụng với Control-->
+            <Style x:Key="baseStyle" TargetType="{x:Type Control}">
+                <Setter Property="FontFamily" Value="Times New Roman" />
+                <Setter Property="FontSize" Value="20" />
+                <Setter Property="FontStyle" Value="Italic" />
+            </Style>
+            <!--(2) Style kế thừa từ Style trước, quy định với Control TextBox -->
+            <Style BasedOn="{StaticResource baseStyle}" TargetType="{x:Type TextBox}">
+                <!--Khai báo trigger-->
+                <Style.Triggers>
+                    <!--Sự kiện khi con trỏ chuột lướt qua-->
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter Property="Foreground" Value="Red" />
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+            <!--(3) Thiết lập Template cho điều khiển Button-->
+            <Style TargetType="Button">
+                <Setter Property="OverridesDefaultStyle" Value="True"/>
+                <Setter Property="Template">
+                    <Setter.Value>
+                        <ControlTemplate TargetType="Button">
+                            <Grid>
+                                <Ellipse Fill="Cyan"/>
+                                <!--Đánh dấu nơi bắt đầu đặt nội dung của Button: chính giữa-->
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Grid>
+                        </ControlTemplate>
+                    </Setter.Value>
+                </Setter>
+            </Style>
+        </StackPanel.Resources>
+        <Grid>
+        <Label Content="Mã sản phẩm:" HorizontalAlignment="Left" Margin="36,50,0,0" VerticalAlignment="Top" Height="33" Width="120" FontSize="20" FontFamily="Times New Roman"/>
+        <Label Content="Tên sản phẩm:" HorizontalAlignment="Left" Margin="36,100,0,0" VerticalAlignment="Top" Height="33" Width="120" FontSize="20" FontFamily="Times New Roman"/>
+        <Label Content="Loại sản phẩm:" HorizontalAlignment="Left" Margin="36,150,0,0" VerticalAlignment="Top" Height="33" Width="135" FontSize="20" FontFamily="Times New Roman"/>
+        <Label Content="Đơn giá:" HorizontalAlignment="Left" Margin="36,200,0,0" VerticalAlignment="Top" Height="33" Width="120" FontSize="20" FontFamily="Times New Roman"/>
+        <Label Content="Số lượng:" HorizontalAlignment="Left" Margin="36,250,0,0" VerticalAlignment="Top" Height="33" Width="120" FontSize="20" FontFamily="Times New Roman"/>
+        <TextBox Name="tbMaSP" HorizontalAlignment="Left" Height="33" Margin="228,50,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="196"/>
+        <TextBox Name="tbTenSP" HorizontalAlignment="Left" Height="33" Margin="228,100,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="196"/>
+        <TextBox Name="tbDonGia" HorizontalAlignment="Left" Height="33" Margin="228,200,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="196"/>
+        <TextBox Name="tbSoLuong" HorizontalAlignment="Left" Height="33" Margin="228,250,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="196"/>
+        <ComboBox Name="cboxLoaiSP" HorizontalAlignment="Left" Height="33" Margin="228,150,0,0" VerticalAlignment="Top" Width="196"/>
+
+        <DataGrid SelectedCellsChanged="select_cell" Name="dtg" HorizontalAlignment="Left" Height="156" Margin="36,308,0,0" VerticalAlignment="Top" Width="719" AutoGenerateColumns="False" AlternatingRowBackground="AntiqueWhite" CanUserAddRows="False">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Mã SP" Binding="{Binding MaSp}"/>
+                <DataGridTextColumn Header="Tên SP" Binding="{Binding TenSp}"/>
+                <DataGridTextColumn Header="Mã loại SP" Binding="{Binding MaLoai}"/>
+                <DataGridTextColumn Header="Số lượng" Binding="{Binding SoLuong}"/>
+                <DataGridTextColumn Header="Đơn giá" Binding="{Binding DonGia}"/>
+                <DataGridTextColumn Header="Thành tiền" Binding="{Binding ThanhTien}" Width="*"/>
+            </DataGrid.Columns>
+        </DataGrid>
+        <Button Click="clickThem" Name="btnThem" Content="Thêm" HorizontalAlignment="Left" Height="38" Margin="113,499,0,0" VerticalAlignment="Top" Width="98"/>
+        <Button Click="clickSua" Name="bntSua" Content="Sửa" HorizontalAlignment="Left" Height="38" Margin="242,499,0,0" VerticalAlignment="Top" Width="98"/>
+        <Button Click="clickXoa" Name="btnXoa" Content="Xóa" HorizontalAlignment="Left" Height="38" Margin="369,499,0,0" VerticalAlignment="Top" Width="98"/>
+        <Button Click="clickTim" Name="btnTim" Content="Tìm" HorizontalAlignment="Left" Height="38" Margin="497,499,0,0" VerticalAlignment="Top" Width="98"/>
+        <Button Click="clickThongKe" Name="btnThongKe" Content="Thống kê" HorizontalAlignment="Left" Height="38" Margin="623,499,0,0" VerticalAlignment="Top" Width="98"/>
+
+    </Grid>
+    </StackPanel>
