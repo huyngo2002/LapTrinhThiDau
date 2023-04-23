@@ -709,3 +709,53 @@ void main()
     gl_Position = Model * vPosition;
 	color=vColor;
 }//
+--------------------------------------------------------------------------------------
+View:
+- Sửa file vshader:
+-------------------------------------------------------------
+#version 400
+in vec4 vPosition;
+in vec4 vColor;
+out vec4 color;
+
+uniform mat4 Model;
+uniform mat4 view;
+uniform mat4 projection;
+
+void main()
+{
+     gl_Position = projection * view * Model * vPosition / vPosition.w;
+	//gl_Position = vPosition;
+	color=vColor;
+}
+-------------------------------------------------------------
+- Sửa phần khai báo. (trên hàm initCube)
+----------------------------------------------------------------
+GLuint program, model_loc, projection_loc, view_loc;
+mat4 model, model_ban;
+GLfloat l = -2.0, r = 2.0;
+GLfloat bottom = -2.0, top = 2.0;
+GLfloat zNear = 1.5, zFar = 3.0;
+---------------------------------------------------------------------
+Thêm vào shaderSetup:
+-------------------------------------------------------------------------
+model_loc = glGetUniformLocation(program, "Model");
+view_loc = glGetUniformLocation(program, "view");
+projection_loc = glGetUniformLocation(program, "projection");
+glEnable(GL_DEPTH_TEST);
+--------------------------------------------------------------------------
+Thêm vào đầu hàm display:
+-----------------------------------------------------------------------------
+glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+vec4 eye = vec4(1.0, 1.0, -1.5, 1);
+vec4 at = vec4(0.0, 0.0, 0.0, 1);
+vec4 up = vec4(0, 1, 0, 1);
+mat4 View = LookAt(eye, at, up);
+glUniformMatrix4fv(view_loc, 1, GL_TRUE, View);
+
+//mat4 Projection = Ortho(l, r, bottom, top, zNear, zFar);
+mat4 Projection = Frustum(l, r, bottom, top, zNear, zFar);
+glUniformMatrix4fv(projection_loc, 1, GL_TRUE, Projection);
+
+mat4 Model_ = Scale(2, 2, 2);
+glUniformMatrix4fv(model_loc, 1, GL_TRUE, Model_);
