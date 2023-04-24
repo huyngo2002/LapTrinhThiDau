@@ -1,0 +1,161 @@
+-----------------------------------------------------------------------------------------------------------
+<?xml version="1.0" encoding="utf-8" ?>
+<DS xmlns="http://tempuri.org/XMLSchema1.xsd">
+	<HoaDon>
+		<MaHD>HD1</MaHD>
+		<NgayBan>2015-11-09</NgayBan>
+		<LoaiHang MaLoai="A" TenLoai="Điện tử">
+			<Hang MaHang="H1">
+				<TenHang>Ti Vi</TenHang>
+				<SoLuong>60</SoLuong>
+				<DonViTinh>Chiếc</DonViTinh>
+				<DonGia>6000000</DonGia>
+			</Hang>
+		</LoaiHang>
+	</HoaDon>
+</DS>
+-----------------------------------------------------------------------------------------------------------
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="hoadon"
+    targetNamespace="http://tempuri.org/XMLSchema1.xsd"
+    elementFormDefault="qualified"
+    xmlns="http://tempuri.org/XMLSchema1.xsd"
+    xmlns:mstns="http://tempuri.org/XMLSchema1.xsd"
+    xmlns:xs="http://www.w3.org/2001/XMLSchema"
+>
+	<xs:element name="DS">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element name="HoaDon" maxOccurs="4">
+					<xs:complexType>
+						<xs:sequence>
+							<xs:element name="MaHD" type="xs:string"/>
+							<xs:element name="NgayBan" type="xs:date"/>
+							<xs:element name="LoaiHang" maxOccurs="10">
+								<xs:complexType>
+									<xs:sequence>
+										
+										<xs:element name="Hang">
+											<xs:complexType>
+												<xs:sequence>
+													<xs:element name="MaHang">
+														<xs:simpleType>
+															<xs:restriction base="xs:ID">
+																<xs:maxLength value="6"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+													<xs:element name="TenHang" type="xs:string"/>
+													<xs:element name="SoLuong" type="xs:int"/>
+													<xs:element name="DonViTinh">
+														<xs:simpleType>
+															<xs:restriction base="xs:string">
+																<xs:enumeration value="goi"/>
+																<xs:enumeration value="hop"/>
+																<xs:enumeration value="chiec"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+													<xs:element name="DonGia">
+														<xs:simpleType>
+															<xs:restriction base="xs:double">
+																<xs:minExclusive value="0"/>
+															</xs:restriction>
+														</xs:simpleType>
+													</xs:element>
+												</xs:sequence>
+											</xs:complexType>
+										</xs:element>
+									</xs:sequence>
+									<xs:attribute name="MaLoai" type="xs:string"/>
+									<xs:attribute name="TenLoai" type="xs:string"/>
+								</xs:complexType>
+							</xs:element>
+						</xs:sequence>
+					</xs:complexType>
+				</xs:element>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>
+------------------------------------------------------------------------------------------------------------------------------------------
+<?xml version="1.0" encoding="utf-8"?>
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
+    xmlns:msxsl="urn:schemas-microsoft-com:xslt" exclude-result-prefixes="msxsl"
+>
+    <xsl:output method="html" indent="yes"/>
+
+    <xsl:template match="/">
+		<html>
+			<head>
+				<title>Danh sách hàng hóa</title>
+			</head>
+			<body>
+				<xsl:for-each select="DS/HoaDon">
+				<h1>PHIẾU MUA HÀNG</h1>
+				<br></br>
+				<table border="0">
+					<tr>
+						<td>Hóa đơn: <xsl:value-of select="MaHD"/>
+					</td>
+						<td>Ngày bán: <xsl:value-of select="NgayBan"/>
+					</td>
+					</tr>
+					<tr>
+						<td>Loại hàng:  <xsl:value-of select="LoaiHang/@TenLoai"/>
+						</td>
+						<td></td>
+					</tr>
+				</table>
+				<table border="1" cellpadding="1">
+					<tr>
+						<td>STT</td>
+						<td>Mã hàng</td>
+						<td>Tên hàng</td>
+						<td>Số lượng</td>
+						<td>Đơn giá</td>
+						<td>Thành tiền</td>
+					</tr>
+					<xsl:for-each select="LoaiHang/Hang">
+						<tr>
+							<td>
+								<xsl:value-of select="position()"/>
+							</td>
+							<td>
+								<xsl:value-of select="@MaHang"/>
+							</td>
+							<td>
+								<xsl:value-of select="TenHang"/>
+							</td>
+							<td>
+								<xsl:value-of select="SoLuong"/>
+							</td>
+							<td>
+								<xsl:value-of select="DonGia"/>
+							</td>
+							<td>
+								<xsl:value-of select="DonGia * SoLuong"/>
+							</td>
+						</tr>
+					</xsl:for-each>
+				</table>
+				</xsl:for-each>
+			</body>
+		</html>
+    </xsl:template>
+</xsl:stylesheet>
+
+------------------------------------------------------------------------------------------------------------------------------------------
+<td>
+				<xsl:if test="ngaycong &lt;= 20">
+					<xsl:value-of select="ngaycong*150000"/>
+				</xsl:if>
+				<xsl:if test="ngaycong > 20 and ngaycong &lt;= 25">
+					<xsl:value-of select="20 * 150000 + (ngaycong - 20) * 200000"/>
+				</xsl:if>
+				<xsl:if test="ngaycong > 25">
+					<xsl:value-of select="20 * 150000 + 5 * 200000 + (ngaycong - 25)*250000"/>
+				</xsl:if>
+			</td>
+------------------------------------------------------------------------------------------------------------------------------------------
+
