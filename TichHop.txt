@@ -1,20 +1,27 @@
 -----------------------------------------------------------------------------------------------------------
 <?xml version="1.0" encoding="utf-8" ?>
-<DS xmlns="http://tempuri.org/XMLSchema1.xsd">
+<?xml-stylesheet type="text/xsl" href="DSHang.xslt"?>
+<DS>
 	<HoaDon>
-		<MaHD>HD1</MaHD>
-		<NgayBan>2015-11-09</NgayBan>
-		<LoaiHang MaLoai="A" TenLoai="Điện tử">
+		<MaHD> HD1 </MaHD>
+		<NgayBan> 2015-11-09</NgayBan>
+		<LoaiHang MaLoai = "A" TenLoai ="Điện tử">
 			<Hang MaHang="H1">
-				<TenHang>Ti Vi</TenHang>
+				<TenHang>TiVi</TenHang>
 				<SoLuong>60</SoLuong>
 				<DonViTinh>Chiếc</DonViTinh>
 				<DonGia>6000000</DonGia>
 			</Hang>
+			<Hang MaHang="H2">
+				<TenHang>Tủ Lạnh</TenHang>
+				<SoLuong>80</SoLuong>
+				<DonViTinh>Chiếc</DonViTinh>
+				<DonGia>4200000</DonGia>
+			</Hang>
 		</LoaiHang>
 	</HoaDon>
 </DS>
------------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------
 <?xml version="1.0" encoding="utf-8"?>
 <xs:schema id="hoadon"
     targetNamespace="http://tempuri.org/XMLSchema1.xsd"
