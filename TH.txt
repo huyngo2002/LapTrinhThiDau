@@ -1,0 +1,444 @@
+================================================================================================================
+Cách 1:
+================================================================================================================
+Form1.cs
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using System.Xml;
+namespace Cau2
+{
+    public partial class Form1 : Form
+    {
+        public Form1()
+        {
+            InitializeComponent();
+        }
+        XmlDocument doc = new XmlDocument();
+        string tentep = @"E:\HocTrenLop\Ki_6\TichHopHeThongPhanMem\OnTap_TX2\Cau1\Cau2\nhanvien.xml";
+        int d;
+        private void HienThi()
+        {
+            datanhanvien.Rows.Clear();
+            doc.Load(tentep);
+            XmlNodeList DS = doc.SelectNodes("ds/nhanvien");
+            int sd = 0;
+            datanhanvien.ColumnCount = 3;
+            datanhanvien.Rows.Add();
+            foreach (XmlNode nhan_vien in DS)
+            {
+                XmlNode ma_nv = nhan_vien.SelectSingleNode("@manv");
+                datanhanvien.Rows[sd].Cells[0].Value = ma_nv.InnerText.ToString();
+                XmlNode ho_ten = nhan_vien.SelectSingleNode("hoten");
+                datanhanvien.Rows[sd].Cells[1].Value = ho_ten.InnerText.ToString();
+                XmlNode dia_chi = nhan_vien.SelectSingleNode("diachi");
+                datanhanvien.Rows[sd].Cells[2].Value = dia_chi.InnerText.ToString();
+                datanhanvien.Rows.Add();
+                sd++;
+            }
+        }
+        private void label3_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            doc.Load(tentep);
+            XmlElement goc = doc.DocumentElement;
+            XmlNode nhan_vien_xoa = goc.SelectSingleNode("/ds/nhanvien[@manv='" + txtMa.Text + "']");
+            goc.RemoveChild(nhan_vien_xoa);
+            doc.Save(tentep);
+            HienThi();
+        }
+
+        private void Form1_Load(object sender, EventArgs e)
+        {
+            HienThi();
+        }
+
+        private void btnThem_Click(object sender, EventArgs e)
+        {
+            doc.Load(tentep);
+            XmlElement goc = doc.DocumentElement;
+            XmlNode nhan_vien = doc.CreateElement("nhanvien");
+            XmlAttribute ma_nv = doc.CreateAttribute("manv");
+            ma_nv.InnerText = txtMa.Text;
+            nhan_vien.Attributes.Append(ma_nv);
+            XmlNode ho_ten = doc.CreateElement("hoten");
+            ho_ten.InnerText = txtTen.Text;
+            nhan_vien.AppendChild(ho_ten);
+            XmlNode dia_chi = doc.CreateElement("diachi");
+            dia_chi.InnerText = txtDiaChi.Text;
+            nhan_vien.AppendChild(dia_chi);
+            goc.AppendChild(nhan_vien);
+            doc.Save(tentep);
+            HienThi();
+        }
+
+        private void btnSua_Click(object sender, EventArgs e)
+        {
+            doc.Load(tentep);
+            XmlElement goc = doc.DocumentElement;
+            XmlNode nhan_vien_cu = goc.SelectSingleNode("/ds/nhanvien[@manv='" + txtMa.Text + "']");
+            XmlNode nhan_vien_moi = doc.CreateElement("nhanvien");
+            XmlAttribute ma_nv = doc.CreateAttribute("manv");
+            ma_nv.InnerText = txtMa.Text;
+            nhan_vien_moi.Attributes.Append(ma_nv);
+            XmlNode ho_ten = doc.CreateElement("hoten");
+            ho_ten.InnerText = txtTen.Text;
+            nhan_vien_moi.AppendChild(ho_ten);
+            XmlNode dia_chi = doc.CreateElement("diachi");
+            dia_chi.InnerText = txtDiaChi.Text;
+            nhan_vien_moi.AppendChild(dia_chi);
+            goc.ReplaceChild(nhan_vien_moi, nhan_vien_cu);
+            doc.Save(tentep);
+            HienThi();
+        }
+
+        private void datanhanvien_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            d = e.RowIndex;
+            txtMa.Text = datanhanvien.Rows[d].Cells[0].Value.ToString();
+            txtTen.Text = datanhanvien.Rows[d].Cells[1].Value.ToString();
+            txtDiaChi.Text = datanhanvien.Rows[d].Cells[2].Value.ToString();
+        }
+
+        private void btnPreview_Click(object sender, EventArgs e)
+        {
+            string path = @"E:\HocTrenLop\Ki_6\TichHopHeThongPhanMem\OnTap_TX2\Cau1\Cau2\nhanvien.xml";
+            System.Diagnostics.Process.Start("Explorer.exe", path);
+        }
+    }
+}
+
+================================================================================================================
+nhanvien.xml
+<?xml version="1.0" encoding="utf-8"?>
+<ds>
+  <nhanvien manv="nv01">
+    <hoten>Trần Văn Hùng</hoten>
+    <diachi>27 Hàng Bài, Hà Nội</diachi>
+  </nhanvien>
+  <nhanvien manv="nv02">
+    <hoten>Lê Thu Hà</hoten>
+    <diachi>246A Bà Triệu, Hà Nội</diachi>
+  </nhanvien>
+</ds>
+================================================================================================================
+================================================================================================================
+Cách 2:
+================================================================================================================
+Student.cs
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Cau1
+{
+    internal class Student
+    {
+        public string id { get; set; }
+        public string name { get; set;}
+        public string age { get; set; }
+        public string city { get; set; }
+    }
+}
+
+================================================================================================================
+DataUtil.cs
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Xml;
+using System.IO;
+namespace Cau1
+{
+    internal class DataUtil
+    {
+        XmlDocument doc;
+        XmlElement root;
+        string filename;
+        public DataUtil()
+        {
+            filename = "Course.xml";
+            doc = new XmlDocument();
+            // Nếu chưa có file thì tạo phần tử gốc  là course, tạo file mới và ghi vào file
+            if (!File.Exists(filename))
+            {
+                XmlElement course = doc.CreateElement("course");
+                doc.AppendChild(course);
+                doc.Save(filename);
+            }
+            doc.Load(filename);
+            root = doc.DocumentElement; // Lấy ra phần tử gốc
+        }
+        public void AddStudent(Student s)
+        {
+            XmlElement st = doc.CreateElement("student");
+            st.SetAttribute("id", s.id);
+            XmlElement name = doc.CreateElement("name");
+            name.InnerText = s.name;
+            XmlElement age = doc.CreateElement("age");
+            age.InnerText = s.age;
+            XmlElement city = doc.CreateElement("city");
+            city.InnerText = s.city;
+            st.AppendChild(name);
+            st.AppendChild(age);
+            st.AppendChild(city);
+            root.AppendChild(st);
+            doc.Save(filename);
+        }
+        public List<Student> GetAllStudents()
+        {
+            XmlNodeList nodes = root.SelectNodes("student");
+            List<Student> li = new List<Student>();
+            foreach (XmlNode item in nodes)
+            {
+                Student s = new Student();
+                s.id = item.Attributes[0].InnerText;
+                s.name = item.SelectSingleNode("name").InnerText;
+                s.age = item.SelectSingleNode("age").InnerText;
+                s.city = item.SelectSingleNode("city").InnerText;
+                li.Add(s);
+            }
+            return li;
+        }
+        public bool updateStudent(Student s)
+        {
+            XmlNode  stfind = root.SelectSingleNode("student[@id='" + s.id + "']");
+            if (stfind != null)
+            {
+                XmlElement st = doc.CreateElement("student");
+                st.SetAttribute("id", s.id);
+                XmlElement name = doc.CreateElement("name");
+                name.InnerText = s.name;
+                XmlElement age = doc.CreateElement("age");
+                age.InnerText = s.age;
+                XmlElement city = doc.CreateElement("city");
+                city.InnerText = s.city;
+                st.AppendChild(name);
+                st.AppendChild(age);
+                st.AppendChild(city);
+                root.ReplaceChild(st, stfind);
+                doc.Save(filename);
+                return true;
+            }
+            return false;
+        }
+        public bool DeleteStudent(string id)
+        {
+            XmlNode stfind = root.SelectSingleNode("student[@id='" + id + "']");
+            if (stfind != null)
+            {
+                root.RemoveChild(stfind);
+                doc.Save(filename) ;
+                return true;
+            }
+            return false;
+        }
+        public Student FindByID(string id)
+        {
+            XmlNode stfind = root.SelectSingleNode("student[@id='" + id + "']");
+            Student s = null;
+            if (stfind != null)
+            {
+                s = new Student();
+                s.id = stfind.Attributes[0].InnerText;
+                s.name = stfind.SelectSingleNode("name").InnerText;
+                s.age = stfind.SelectSingleNode("age").InnerText;
+                s.city = stfind.SelectSingleNode("city").InnerText;
+            }
+            return s;
+        }
+        public List<Student>FindByCity(string city)
+        {
+            XmlNodeList students = root.SelectNodes("student[city='" + city + "']");
+            List<Student> li = new List<Student>();
+            foreach (XmlNode item in students)
+            {
+                Student s = new Student();
+                s.id = item.Attributes[0].InnerText;
+                s.name = item.SelectSingleNode("name").InnerText;
+                s.age = item.SelectSingleNode("age").InnerText;
+                s.city = item.SelectSingleNode("city").InnerText;
+                li.Add(s);
+            }
+            return li;
+        }
+    }
+}
+
+================================================================================================================
+Form1.cs
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace Cau1
+{
+    public partial class MyCourse : Form
+    {
+        public MyCourse()
+        {
+            InitializeComponent();
+        }
+        DataUtil data = new DataUtil();
+        private void label3_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void label4_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button7_Click(object sender, EventArgs e)
+        {
+            Close();
+        }
+
+        private void label6_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void MyCourse_Load(object sender, EventArgs e)
+        {
+            DisplayData();
+        }
+        private void DisplayData()
+        {
+            dataGridView1.DataSource = data.GetAllStudents();
+            dataGridView1.Columns[0].Width = 50;
+            dataGridView1.Columns[1].Width = 250;
+            dataGridView1.Columns[2].Width = 50;
+            dataGridView1.Columns[3].Width = 200;
+            lblCount.Text = dataGridView1.Rows.Count + "";
+        }
+        private void btnThem_Click(object sender, EventArgs e)
+        {
+            Student s = new Student();
+            s.id = txtMa.Text;
+            s.name = txtTen.Text;
+            s.age = txtTuoi.Text;
+            s.city = txtThanhPho.Text;
+            data.AddStudent(s);
+            ClearTextBoxs();
+            DisplayData();
+        }
+        private void ClearTextBoxs()
+        {
+            txtMa.Clear();
+            txtTen.Clear();
+            txtTuoi.Clear();
+            txtThanhPho.Clear();
+            ActiveControl = txtMa;
+        }
+
+        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+
+        }
+
+        private void btnLoadFile_Click(object sender, EventArgs e)
+        {
+            DisplayData();
+        }
+
+        private void GetAtStudent(object sender, DataGridViewCellEventArgs e)
+        {
+            Student s = (Student)dataGridView1.CurrentRow.DataBoundItem;
+            txtMa.Text = s.id;
+            txtTen.Text = s.name;
+            txtTuoi.Text = s.age;
+            txtThanhPho.Text = s.city;
+        }
+
+        private void btnSua_Click(object sender, EventArgs e)
+        {
+            Student s = new Student();
+            s.id = txtMa.Text;
+            s.name = txtTen.Text;
+            s.age = txtTuoi.Text;
+            s.city = txtThanhPho.Text;
+            bool kt = data.updateStudent(s);
+            if (!kt)
+            {
+                MessageBox.Show("Không cập nhật được!");
+                return;
+            }
+            DisplayData();
+        }
+
+        private void btnLamMoi_Click(object sender, EventArgs e)
+        {
+            ClearTextBoxs();
+        }
+
+        private void btnXoa_Click(object sender, EventArgs e)
+        {
+            DialogResult d = MessageBox.Show("Ban co chac chan xoa khong?", "Thong bao",
+                MessageBoxButtons.YesNo, MessageBoxIcon.Error);
+            if (d==DialogResult.Yes)
+            {
+                bool kt = data.DeleteStudent(txtMa.Text);
+                if (!kt)
+                {
+                    MessageBox.Show("Co loi khi xoa.", "Thong bao");
+                    return;
+                }
+                DisplayData();
+                ClearTextBoxs();
+            }
+        }
+
+        private void btnTimTheoMa_Click(object sender, EventArgs e)
+        {
+            string id = txtMa.Text;
+            List<Student> li = new List<Student>();
+            Student s = data.FindByID(id);
+            if (s != null)
+            {
+                li.Add(s);
+                dataGridView1.DataSource = li;
+                lblCount.Text = dataGridView1.Rows.Count + "";
+                txtMa.Text = s.id;
+                txtTen.Text = s.name;
+                txtTuoi.Text = s.age;
+                txtThanhPho.Text = s.city;
+            }
+            else
+            {
+                MessageBox.Show("Khong co sinh vien co ma=" + id, "Thong bao");
+            }
+        }
+
+        private void btnTimTheoCity_Click(object sender, EventArgs e)
+        {
+            string city = txtThanhPho.Text;
+            dataGridView1.DataSource = data.FindByCity(city);
+            lblCount.Text = dataGridView1.Rows.Count + "";
+            ClearTextBoxs();
+            txtThanhPho.Text = city;
+        }
+    }
+}
+================================================================================================================
