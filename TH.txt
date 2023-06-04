@@ -442,3 +442,36 @@ namespace Cau1
     }
 }
 ================================================================================================================
+private void datanhanvien_CellContentClick(object sender, DataGridViewCellEventArgs e)
+{
+    try
+    {
+        if (e.RowIndex >= 0 && e.RowIndex < datanhanvien.Rows.Count - 1) // Kiểm tra chỉ số hàng hợp lệ
+        {
+            DataGridViewRow selectedRow = datanhanvien.Rows[e.RowIndex];
+            if (selectedRow.Cells[0].Value != null)
+                txtMa.Text = selectedRow.Cells[0].Value.ToString();
+            else
+                txtMa.Text = string.Empty;
+
+            if (selectedRow.Cells[1].Value != null)
+                txtHo.Text = selectedRow.Cells[1].Value.ToString();
+            else
+                txtHo.Text = string.Empty;
+
+            if (selectedRow.Cells[2].Value != null)
+                txtTen.Text = selectedRow.Cells[2].Value.ToString();
+            else
+                txtTen.Text = string.Empty;
+
+            if (selectedRow.Cells[3].Value != null)
+                txtDiaChi.Text = selectedRow.Cells[3].Value.ToString();
+            else
+                txtDiaChi.Text = string.Empty;
+        }
+    }
+    catch (NullReferenceException ex)
+    {
+        MessageBox.Show("Lỗi xảy ra khi chọn hàng: " + ex.Message, "Thông báo");
+    }
+}
