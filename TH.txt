@@ -1,7 +1,80 @@
-================================================================================================================
-Cách 1:
-================================================================================================================
-Form1.cs
+----- Sản phẩm controller
+using OnTapLan1.Models;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Web.Http;
+using OnTapLan1.Models;
+namespace OnTapLan1.Controllers
+{
+    public class SanPhamController : ApiController
+    {
+        CSDLTestEntities db = new CSDLTestEntities();
+        [HttpGet]
+        public List<SanPham> LaySP()
+        {
+            return db.SanPhams.ToList();
+        }
+        [HttpGet]
+        public List<SanPham> TimSPTheoDanhMuc(int madm)
+        {
+            return db.SanPhams.Where(x => x.MaDanhMuc == madm).ToList();
+        }
+        [HttpGet]
+        public SanPham TimSPTheoMa(int ma)
+        {
+            return db.SanPhams.FirstOrDefault(x => x.Ma == ma);
+        }
+        [HttpPost]
+        public bool ThemMoi(int ma, string ten, int gia, int madm)
+        {
+            SanPham sp = db.SanPhams.FirstOrDefault(x => x.Ma == ma);
+            if (sp == null)
+            {
+                SanPham sp1 = new SanPham();
+                sp1.Ma = ma;
+                sp1.Ten = ten;
+                sp1.DonGia = gia;
+                sp1.MaDanhMuc = madm;
+                db.SanPhams.Add(sp1);
+                db.SaveChanges();
+                return true;
+            }
+            return false;
+        }
+        [HttpPut]
+        public bool CapNhat(int ma, string ten, int gia, int madm)
+        {
+            SanPham sp = db.SanPhams.FirstOrDefault(x => x.Ma == ma);
+            if (sp != null)
+            {
+                sp.Ma = ma;
+                sp.Ten = ten;
+                sp.DonGia = gia;
+                sp.MaDanhMuc = madm;
+                db.SaveChanges();
+                return true;
+            }
+            return false;
+        }
+        [HttpDelete]
+        public bool xoa(int id)
+        {
+            SanPham sp = db.SanPhams.FirstOrDefault(x => x.Ma == id);
+            if (sp != null)
+            {
+                db.SanPhams.Remove(sp);
+                db.SaveChanges();
+                return true;
+            }
+            return false;
+        }
+    }
+}
+-----------------------------------------------------------------------------------
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -11,8 +84,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Xml;
-namespace Cau2
+using System.Net;
+using System.Runtime.Serialization.Json;
+using System.IO;
+
+namespace OnTapFormLan1
 {
     public partial class Form1 : Form
     {
@@ -20,458 +96,144 @@ namespace Cau2
         {
             InitializeComponent();
         }
-        XmlDocument doc = new XmlDocument();
-        string tentep = @"E:\HocTrenLop\Ki_6\TichHopHeThongPhanMem\OnTap_TX2\Cau1\Cau2\nhanvien.xml";
-        int d;
-        private void HienThi()
-        {
-            datanhanvien.Rows.Clear();
-            doc.Load(tentep);
-            XmlNodeList DS = doc.SelectNodes("ds/nhanvien");
-            int sd = 0;
-            datanhanvien.ColumnCount = 3;
-            datanhanvien.Rows.Add();
-            foreach (XmlNode nhan_vien in DS)
-            {
-                XmlNode ma_nv = nhan_vien.SelectSingleNode("@manv");
-                datanhanvien.Rows[sd].Cells[0].Value = ma_nv.InnerText.ToString();
-                XmlNode ho_ten = nhan_vien.SelectSingleNode("hoten");
-                datanhanvien.Rows[sd].Cells[1].Value = ho_ten.InnerText.ToString();
-                XmlNode dia_chi = nhan_vien.SelectSingleNode("diachi");
-                datanhanvien.Rows[sd].Cells[2].Value = dia_chi.InnerText.ToString();
-                datanhanvien.Rows.Add();
-                sd++;
-            }
-        }
-        private void label3_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void button3_Click(object sender, EventArgs e)
-        {
-            doc.Load(tentep);
-            XmlElement goc = doc.DocumentElement;
-            XmlNode nhan_vien_xoa = goc.SelectSingleNode("/ds/nhanvien[@manv='" + txtMa.Text + "']");
-            goc.RemoveChild(nhan_vien_xoa);
-            doc.Save(tentep);
-            HienThi();
-        }
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            HienThi();
+            
+            LoadDataGridView();
+            LoadComboBox();
+        }
+        public void LoadDataGridView()
+        {
+            string link = "http://localhost:90/hocrestful/api/sanpham";
+            HttpWebRequest request = WebRequest.CreateHttp(link);
+            WebResponse response = request.GetResponse();
+            DataContractJsonSerializer js = new DataContractJsonSerializer(typeof(SanPham[]));
+            object data = js.ReadObject(response.GetResponseStream());
+            SanPham[] arr = data as SanPham[];
+            dataGridView1.DataSource = arr;
+        }
+        public void LoadComboBox()
+        {
+            string link = "http://localhost:90/hocrestful/api/danhmuc";
+            HttpWebRequest request = WebRequest.CreateHttp(link);
+            WebResponse response = request.GetResponse();
+            DataContractJsonSerializer js = new DataContractJsonSerializer(typeof(DanhMuc[]));
+            object data = js.ReadObject(response.GetResponseStream());
+            DanhMuc[] arr1 = data as DanhMuc[];
+            cboDanhMuc.DataSource = arr1;
+            cboDanhMuc.ValueMember = "MaDanhMuc";
+            cboDanhMuc.DisplayMember = "TenDanhMuc";
+        }
+
+        private void btnTimDanhMuc_Click(object sender, EventArgs e)
+        {
+            string madm = txtMaDM.Text;
+            string link = "http://localhost:90/hocrestful/api/sanpham?madm=" + madm;
+            HttpWebRequest request = WebRequest.CreateHttp(link);
+            WebResponse response = request.GetResponse();
+            DataContractJsonSerializer js = new DataContractJsonSerializer(typeof(SanPham[]));
+            object data = js.ReadObject(response.GetResponseStream());
+            SanPham[] arr = data as SanPham[];
+            dataGridView1.DataSource = arr;
         }
 
         private void btnThem_Click(object sender, EventArgs e)
         {
-            doc.Load(tentep);
-            XmlElement goc = doc.DocumentElement;
-            XmlNode nhan_vien = doc.CreateElement("nhanvien");
-            XmlAttribute ma_nv = doc.CreateAttribute("manv");
-            ma_nv.InnerText = txtMa.Text;
-            nhan_vien.Attributes.Append(ma_nv);
-            XmlNode ho_ten = doc.CreateElement("hoten");
-            ho_ten.InnerText = txtTen.Text;
-            nhan_vien.AppendChild(ho_ten);
-            XmlNode dia_chi = doc.CreateElement("diachi");
-            dia_chi.InnerText = txtDiaChi.Text;
-            nhan_vien.AppendChild(dia_chi);
-            goc.AppendChild(nhan_vien);
-            doc.Save(tentep);
-            HienThi();
-        }
-
-        private void btnSua_Click(object sender, EventArgs e)
-        {
-            doc.Load(tentep);
-            XmlElement goc = doc.DocumentElement;
-            XmlNode nhan_vien_cu = goc.SelectSingleNode("/ds/nhanvien[@manv='" + txtMa.Text + "']");
-            XmlNode nhan_vien_moi = doc.CreateElement("nhanvien");
-            XmlAttribute ma_nv = doc.CreateAttribute("manv");
-            ma_nv.InnerText = txtMa.Text;
-            nhan_vien_moi.Attributes.Append(ma_nv);
-            XmlNode ho_ten = doc.CreateElement("hoten");
-            ho_ten.InnerText = txtTen.Text;
-            nhan_vien_moi.AppendChild(ho_ten);
-            XmlNode dia_chi = doc.CreateElement("diachi");
-            dia_chi.InnerText = txtDiaChi.Text;
-            nhan_vien_moi.AppendChild(dia_chi);
-            goc.ReplaceChild(nhan_vien_moi, nhan_vien_cu);
-            doc.Save(tentep);
-            HienThi();
-        }
-
-        private void datanhanvien_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-            d = e.RowIndex;
-            txtMa.Text = datanhanvien.Rows[d].Cells[0].Value.ToString();
-            txtTen.Text = datanhanvien.Rows[d].Cells[1].Value.ToString();
-            txtDiaChi.Text = datanhanvien.Rows[d].Cells[2].Value.ToString();
-        }
-
-        private void btnPreview_Click(object sender, EventArgs e)
-        {
-            string path = @"E:\HocTrenLop\Ki_6\TichHopHeThongPhanMem\OnTap_TX2\Cau1\Cau2\nhanvien.xml";
-            System.Diagnostics.Process.Start("Explorer.exe", path);
-        }
-    }
-}
-
-================================================================================================================
-nhanvien.xml
-<?xml version="1.0" encoding="utf-8"?>
-<ds>
-  <nhanvien manv="nv01">
-    <hoten>Trần Văn Hùng</hoten>
-    <diachi>27 Hàng Bài, Hà Nội</diachi>
-  </nhanvien>
-  <nhanvien manv="nv02">
-    <hoten>Lê Thu Hà</hoten>
-    <diachi>246A Bà Triệu, Hà Nội</diachi>
-  </nhanvien>
-</ds>
-================================================================================================================
-================================================================================================================
-Cách 2:
-================================================================================================================
-Student.cs
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Cau1
-{
-    internal class Student
-    {
-        public string id { get; set; }
-        public string name { get; set;}
-        public string age { get; set; }
-        public string city { get; set; }
-    }
-}
-
-================================================================================================================
-DataUtil.cs
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Xml;
-using System.IO;
-namespace Cau1
-{
-    internal class DataUtil
-    {
-        XmlDocument doc;
-        XmlElement root;
-        string filename;
-        public DataUtil()
-        {
-            filename = "Course.xml";
-            doc = new XmlDocument();
-            // Nếu chưa có file thì tạo phần tử gốc  là course, tạo file mới và ghi vào file
-            if (!File.Exists(filename))
+            string postString = string.Format("?ma={0}&ten={1}&gia={2}&madm={3}",
+                txtMaSP.Text, txtTenSP.Text, txtDonGia.Text, cboDanhMuc.SelectedValue);
+            string link = "http://localhost:90/hocrestful/api/sanpham/" + postString;
+            HttpWebRequest request = HttpWebRequest.CreateHttp(link);
+            request.Method = "POST";
+            request.ContentType = "application/json;charset=UTF-8";
+            byte[] byteArray = Encoding.UTF8.GetBytes(postString);
+            request.ContentLength = byteArray.Length;
+            Stream dataStream = request.GetRequestStream();
+            dataStream.Write(byteArray, 0, byteArray.Length);
+            dataStream.Close();
+            DataContractJsonSerializer js = new DataContractJsonSerializer(typeof(bool));
+            object data = js.ReadObject(request.GetResponse().GetResponseStream());
+            bool kq = (bool)data;
+            if (kq)
             {
-                XmlElement course = doc.CreateElement("course");
-                doc.AppendChild(course);
-                doc.Save(filename);
+                LoadDataGridView();
+                MessageBox.Show("Thêm sản phẩm thành công");
             }
-            doc.Load(filename);
-            root = doc.DocumentElement; // Lấy ra phần tử gốc
-        }
-        public void AddStudent(Student s)
-        {
-            XmlElement st = doc.CreateElement("student");
-            st.SetAttribute("id", s.id);
-            XmlElement name = doc.CreateElement("name");
-            name.InnerText = s.name;
-            XmlElement age = doc.CreateElement("age");
-            age.InnerText = s.age;
-            XmlElement city = doc.CreateElement("city");
-            city.InnerText = s.city;
-            st.AppendChild(name);
-            st.AppendChild(age);
-            st.AppendChild(city);
-            root.AppendChild(st);
-            doc.Save(filename);
-        }
-        public List<Student> GetAllStudents()
-        {
-            XmlNodeList nodes = root.SelectNodes("student");
-            List<Student> li = new List<Student>();
-            foreach (XmlNode item in nodes)
+            else
             {
-                Student s = new Student();
-                s.id = item.Attributes[0].InnerText;
-                s.name = item.SelectSingleNode("name").InnerText;
-                s.age = item.SelectSingleNode("age").InnerText;
-                s.city = item.SelectSingleNode("city").InnerText;
-                li.Add(s);
+                MessageBox.Show("Thêm sản phẩm thất bại");
             }
-            return li;
-        }
-        public bool updateStudent(Student s)
-        {
-            XmlNode  stfind = root.SelectSingleNode("student[@id='" + s.id + "']");
-            if (stfind != null)
-            {
-                XmlElement st = doc.CreateElement("student");
-                st.SetAttribute("id", s.id);
-                XmlElement name = doc.CreateElement("name");
-                name.InnerText = s.name;
-                XmlElement age = doc.CreateElement("age");
-                age.InnerText = s.age;
-                XmlElement city = doc.CreateElement("city");
-                city.InnerText = s.city;
-                st.AppendChild(name);
-                st.AppendChild(age);
-                st.AppendChild(city);
-                root.ReplaceChild(st, stfind);
-                doc.Save(filename);
-                return true;
-            }
-            return false;
-        }
-        public bool DeleteStudent(string id)
-        {
-            XmlNode stfind = root.SelectSingleNode("student[@id='" + id + "']");
-            if (stfind != null)
-            {
-                root.RemoveChild(stfind);
-                doc.Save(filename) ;
-                return true;
-            }
-            return false;
-        }
-        public Student FindByID(string id)
-        {
-            XmlNode stfind = root.SelectSingleNode("student[@id='" + id + "']");
-            Student s = null;
-            if (stfind != null)
-            {
-                s = new Student();
-                s.id = stfind.Attributes[0].InnerText;
-                s.name = stfind.SelectSingleNode("name").InnerText;
-                s.age = stfind.SelectSingleNode("age").InnerText;
-                s.city = stfind.SelectSingleNode("city").InnerText;
-            }
-            return s;
-        }
-        public List<Student>FindByCity(string city)
-        {
-            XmlNodeList students = root.SelectNodes("student[city='" + city + "']");
-            List<Student> li = new List<Student>();
-            foreach (XmlNode item in students)
-            {
-                Student s = new Student();
-                s.id = item.Attributes[0].InnerText;
-                s.name = item.SelectSingleNode("name").InnerText;
-                s.age = item.SelectSingleNode("age").InnerText;
-                s.city = item.SelectSingleNode("city").InnerText;
-                li.Add(s);
-            }
-            return li;
-        }
-    }
-}
-
-================================================================================================================
-Form1.cs
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-
-namespace Cau1
-{
-    public partial class MyCourse : Form
-    {
-        public MyCourse()
-        {
-            InitializeComponent();
-        }
-        DataUtil data = new DataUtil();
-        private void label3_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void label4_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void button7_Click(object sender, EventArgs e)
-        {
-            Close();
-        }
-
-        private void label6_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void MyCourse_Load(object sender, EventArgs e)
-        {
-            DisplayData();
-        }
-        private void DisplayData()
-        {
-            dataGridView1.DataSource = data.GetAllStudents();
-            dataGridView1.Columns[0].Width = 50;
-            dataGridView1.Columns[1].Width = 250;
-            dataGridView1.Columns[2].Width = 50;
-            dataGridView1.Columns[3].Width = 200;
-            lblCount.Text = dataGridView1.Rows.Count + "";
-        }
-        private void btnThem_Click(object sender, EventArgs e)
-        {
-            Student s = new Student();
-            s.id = txtMa.Text;
-            s.name = txtTen.Text;
-            s.age = txtTuoi.Text;
-            s.city = txtThanhPho.Text;
-            data.AddStudent(s);
-            ClearTextBoxs();
-            DisplayData();
-        }
-        private void ClearTextBoxs()
-        {
-            txtMa.Clear();
-            txtTen.Clear();
-            txtTuoi.Clear();
-            txtThanhPho.Clear();
-            ActiveControl = txtMa;
         }
 
         private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
-
-        }
-
-        private void btnLoadFile_Click(object sender, EventArgs e)
-        {
-            DisplayData();
-        }
-
-        private void GetAtStudent(object sender, DataGridViewCellEventArgs e)
-        {
-            Student s = (Student)dataGridView1.CurrentRow.DataBoundItem;
-            txtMa.Text = s.id;
-            txtTen.Text = s.name;
-            txtTuoi.Text = s.age;
-            txtThanhPho.Text = s.city;
+            int d = e.RowIndex;
+            txtMaSP.Text = dataGridView1.Rows[d].Cells[0].Value.ToString();
+            txtTenSP.Text = dataGridView1.Rows[d].Cells[1].Value.ToString();
+            txtDonGia.Text = dataGridView1.Rows[d].Cells[2].Value.ToString();
+            cboDanhMuc.Text = dataGridView1.Rows[d].Cells[3].Value.ToString();
         }
 
         private void btnSua_Click(object sender, EventArgs e)
         {
-            Student s = new Student();
-            s.id = txtMa.Text;
-            s.name = txtTen.Text;
-            s.age = txtTuoi.Text;
-            s.city = txtThanhPho.Text;
-            bool kt = data.updateStudent(s);
-            if (!kt)
+            string putString = string.Format("?ma={0}&ten={1}&gia={2}&madm={3}",
+               txtMaSP.Text, txtTenSP.Text, txtDonGia.Text, cboDanhMuc.SelectedValue);
+            string link = "http://localhost:90/hocrestful/api/sanpham/" + putString;
+            HttpWebRequest request = HttpWebRequest.CreateHttp(link);
+            request.Method = "PUT";
+            request.ContentType = "application/json;charset=UTF-8";
+            byte[] byteArray = Encoding.UTF8.GetBytes(putString);
+            request.ContentLength = byteArray.Length;
+            Stream dataStream = request.GetRequestStream();
+            dataStream.Write(byteArray, 0, byteArray.Length);
+            dataStream.Close();
+            DataContractJsonSerializer js = new DataContractJsonSerializer(typeof(bool));
+            object data = js.ReadObject(request.GetResponse().GetResponseStream());
+            bool kq = (bool)data;
+            if (kq)
             {
-                MessageBox.Show("Không cập nhật được!");
-                return;
+                MessageBox.Show("Sửa sản phẩm thành công");
+                LoadDataGridView();
             }
-            DisplayData();
-        }
-
-        private void btnLamMoi_Click(object sender, EventArgs e)
-        {
-            ClearTextBoxs();
+            else
+            {
+                MessageBox.Show("Thêm sản phẩm thất bại");
+            }
         }
 
         private void btnXoa_Click(object sender, EventArgs e)
         {
-            DialogResult d = MessageBox.Show("Ban co chac chan xoa khong?", "Thong bao",
-                MessageBoxButtons.YesNo, MessageBoxIcon.Error);
-            if (d==DialogResult.Yes)
-            {
-                bool kt = data.DeleteStudent(txtMa.Text);
-                if (!kt)
-                {
-                    MessageBox.Show("Co loi khi xoa.", "Thong bao");
-                    return;
-                }
-                DisplayData();
-                ClearTextBoxs();
+            if (dataGridView1.SelectedRows.Count == 0) {
+                return;
             }
-        }
-
-        private void btnTimTheoMa_Click(object sender, EventArgs e)
-        {
-            string id = txtMa.Text;
-            List<Student> li = new List<Student>();
-            Student s = data.FindByID(id);
-            if (s != null)
+            DataGridViewRow row = dataGridView1.SelectedRows[0];
+            string masp = row.Cells[0].Value.ToString();
+            string postString = string.Format("?id={0}", masp);
+            string link = "http://localhost:90/hocrestful/api/sanpham";
+            HttpWebRequest request = HttpWebRequest.CreateHttp(link + postString);
+            request.Method = "DELETE";
+            request.ContentType = "application/json;charset=UTF-8";
+            byte[] byteArray = Encoding.UTF8.GetBytes(postString);
+            request.ContentLength = byteArray.Length;
+            Stream dataStream = request.GetRequestStream();
+            dataStream.Write(byteArray, 0, byteArray.Length);
+            dataStream.Close();
+            DataContractJsonSerializer js = new DataContractJsonSerializer(typeof(bool));
+            object data = js.ReadObject(request.GetResponse().GetResponseStream());
+            bool kq = (bool)data;
+            if (kq)
             {
-                li.Add(s);
-                dataGridView1.DataSource = li;
-                lblCount.Text = dataGridView1.Rows.Count + "";
-                txtMa.Text = s.id;
-                txtTen.Text = s.name;
-                txtTuoi.Text = s.age;
-                txtThanhPho.Text = s.city;
+                LoadDataGridView();
+                MessageBox.Show("Xóa sản phẩm thành công");
             }
-            else
-            {
-                MessageBox.Show("Khong co sinh vien co ma=" + id, "Thong bao");
-            }
-        }
-
-        private void btnTimTheoCity_Click(object sender, EventArgs e)
-        {
-            string city = txtThanhPho.Text;
-            dataGridView1.DataSource = data.FindByCity(city);
-            lblCount.Text = dataGridView1.Rows.Count + "";
-            ClearTextBoxs();
-            txtThanhPho.Text = city;
+            
         }
     }
 }
-================================================================================================================
-private void datanhanvien_CellContentClick(object sender, DataGridViewCellEventArgs e)
-{
-    try
-    {
-        if (e.RowIndex >= 0 && e.RowIndex < datanhanvien.Rows.Count - 1) // Kiểm tra chỉ số hàng hợp lệ
-        {
-            DataGridViewRow selectedRow = datanhanvien.Rows[e.RowIndex];
-            if (selectedRow.Cells[0].Value != null)
-                txtMa.Text = selectedRow.Cells[0].Value.ToString();
-            else
-                txtMa.Text = string.Empty;
-
-            if (selectedRow.Cells[1].Value != null)
-                txtHo.Text = selectedRow.Cells[1].Value.ToString();
-            else
-                txtHo.Text = string.Empty;
-
-            if (selectedRow.Cells[2].Value != null)
-                txtTen.Text = selectedRow.Cells[2].Value.ToString();
-            else
-                txtTen.Text = string.Empty;
-
-            if (selectedRow.Cells[3].Value != null)
-                txtDiaChi.Text = selectedRow.Cells[3].Value.ToString();
-            else
-                txtDiaChi.Text = string.Empty;
-        }
-    }
-    catch (NullReferenceException ex)
-    {
-        MessageBox.Show("Lỗi xảy ra khi chọn hàng: " + ex.Message, "Thông báo");
-    }
-}
+------------------------------------------------------------------------------------------------
+sửa lỗi sql:
+Chọn Property cho mục tên Server MAY321\SQLEXPRESS
+Chọn SQL Sever...
+Tìm This PC, Property, Chọn Manage, Mở Services:
+Ấn S để tìm thấy SQL EXPRESS:
+Click vào nút xanh phía trên để Restart.
