@@ -1,0 +1,44 @@
+#include <iostream>
+#include <algorithm>
+long long n, k, l, r, M, a[100002], b[100002], c[100002], T[400008];
+void Init(int node, int L, int R){
+	if (L == R){
+		T[node] = c[L];
+		return;
+	}
+	int mid = (L + R) >> 1;
+	Init(node * 2, L, mid);
+	Init(node * 2 + 1, mid + 1, R);
+	T[node] = std::__gcd(T[node * 2], T[node * 2 + 1]);
+}
+long long Get(int node, int L, int R, int u, int v){
+	if (u > R || v < L) return 1000000000000000001;
+	if (u <= L && v >= R) return T[node];
+	int mid = (L + R) >> 1;
+	long long left = Get(node * 2, L, mid, u, v);
+	long long right = Get(node * 2 + 1, mid + 1, R, u, v);
+	return std::__gcd(left, right);
+}
+int main(){
+	std::ios_base::sync_with_stdio(false);
+	std::cin.tie(NULL);
+	std::cin >> n >> k;
+	for (int i = 1; i <= n; ++i) std::cin >> a[i];
+	for (int i = 1; i <= n; ++i){
+		std::cin >> b[i];
+		c[i] = (a[i] - b[i] >= 0 ? a[i] - b[i] : b[i] - a[i]);
+	}
+	Init(1, 1, n);
+	//for (int i = 1; i <= 100; ++i) std::cout << T[i] << ' ';
+	//std::cout << '\n';
+	while (k--){
+		std::cin >> l >> r;
+		/*M = c[l];
+		for (int i = l + 1; i <= r; ++i){
+			M = std::__gcd(M, c[i]);
+		}
+		std::cout << M << '\n';*/
+		std::cout << Get(1, 1, n, l, r) << '\n';
+	}
+	return 0;
+}
