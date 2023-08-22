@@ -8,6 +8,5 @@ int main(){
 	ans = (3.03 * 112 + 3 * 3.5 * 3 + 3 * 4 * 2 + 15 * 4) / (112 + 15 + 15);
 	std::cout << "Hello world" << '\n';
 	std::cerr << "Hello world" << '\n';
-	std::cout << "Loi";
 	return 0;
 }

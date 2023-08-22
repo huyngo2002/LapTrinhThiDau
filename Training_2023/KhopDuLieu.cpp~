@@ -1,7 +1,6 @@
 #include <iostream>
 #include <algorithm>
-int n, k, l, r;
-long long M, a[100002], b[100002], c[100002], T[400008];
+long long n, k, l, r, M, a[100002], b[100002], c[100002], T[400008];
 void Init(int node, int L, int R){
 	if (L == R){
 		T[node] = c[L];
