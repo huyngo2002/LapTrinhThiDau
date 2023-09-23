@@ -1,0 +1,45 @@
+#include <iostream>
+int a, b, c, d, ans0, ans1, ans2, ans3, ans4, ans5, ans6, ans7, ans8, ans9, ans10, ans11;
+int main () {
+	std::cin >> a >> b >> c >> d;
+	
+	//ans0 = (a > b) ? a : b;
+	ans0 = (a >= b) * a + (b > a) * b;
+	
+	ans1 = (a & 1) ? 1 : 0;
+	//ans1 = (a % 2) ? 1 : 0;
+	
+	ans2 = (a - b) ? 0 : 1;
+	
+	ans3 = ((a < b) ? a : b) < c ? ((a < b) ? a : b) : c;
+	
+	ans4 = (((a < b) ? a : b) < c ? ((a < b) ? a : b) : c) < d ? (((a < b) ? a : b) < c ? ((a < b) ? a : b) : c) : d;
+
+	ans5 = (a == b || b == c || a == c);
+
+	ans6 = ((a > 0) && !(a % 4) && ((a % 100) || !(a % 400)));
+
+	ans7 = (b == 2) ? (c == 28 ? 1 : 0) : (b == 4 || b == 6 || b == 9 || b == 11) ? (c == 30 ? 1 : 0) : (c == 31 ? 1 : 0);
+
+	ans8 = (((a > b) ? a : b) > c ? ((a > b) ? a : b) : c) > d ? (((a > b) ? a : b) > c ? ((a > b) ? a : b) : c) : d;
+	
+	ans9 = (a < 0) == (b < 0);
+
+	ans10 = (a / b == d) && (a % b == c); 
+
+	ans11 = ( (a > b) && b / c == d) ? a : 0;
+
+	std::cout << "ans0 = " << ans0 << '\n';
+	std::cout << "ans1 = " << ans1 << '\n';
+	std::cout << "ans2 = " << ans2 << '\n';
+	std::cout << "ans3 = " << ans3 << '\n';
+	std::cout << "ans4 = " << ans4 << '\n';
+	std::cout << "ans5 = " << ans5 << '\n';
+	std::cout << "ans6 = " << ans6 << '\n';
+	std::cout << "ans7 = " << ans7 << '\n';
+	std::cout << "ans8 = " << ans8 << '\n';
+	std::cout << "ans9 = " << ans9 << '\n';
+	std::cout << "ans10 = " << ans10 << '\n';
+	std::cout << "ans11 = " << ans11 << '\n';
+	return 0;
+}

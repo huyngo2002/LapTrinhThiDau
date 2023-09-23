@@ -1,0 +1,6 @@
+#include <iostream>
+int n, m, a[10000002], b[10000002], c[200000002];
+int main() {
+	
+	return 0;
+}

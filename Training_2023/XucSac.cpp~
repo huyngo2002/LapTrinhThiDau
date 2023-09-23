@@ -1,0 +1,39 @@
+#include <iostream>
+#include <string>
+long long dp[500005];
+const long long MOD = 1e9 + 7;
+std::string s, date = "", month = "", year = "";
+int cnt = 0, sum;
+int main () {
+	std::cin >> s;
+	for (int i = 0; i < (int)s.size(); ++i) {
+		if (s[i] != '/' && cnt == 0) {
+			date += s[i];
+			continue;
+		}
+		if (s[i] == '/' && cnt == 0) {
+			cnt++;
+			continue;
+		}
+		if (s[i] != '/' && cnt == 1) {
+			month += s[i];
+			continue;
+		}
+		if (s[i] == '/' && cnt == 1) {
+			cnt++;
+			continue;
+		}
+		if (s[i] != '/' && cnt == 2) {
+			year += s[i];
+		}
+	}
+	//std::cout << date << '\n' << month << '\n' << year;
+	sum = stoi(date) + stoi(month) + stoi(year);
+	//std::cout << sum;
+	dp[1] = 1;
+	for (long long i = 2; i <= 500000; i++) {
+		dp[i] = (dp[i - 1] * 3 - (i - 1));// % MOD;
+	}	
+	std::cout << dp[sum / 2];
+	return 0;
+}
