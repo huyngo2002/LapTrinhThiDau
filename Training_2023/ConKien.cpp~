@@ -1,0 +1,37 @@
+#include <iostream>
+using namespace std;
+
+const int MOD = 1000000007;
+
+int countWays(int n, long long k) {
+    // Khởi tạo mảng dp
+    int dp[k + 1][2];
+
+    // Trạng thái ban đầu
+    dp[0][0] = 1;
+    dp[0][1] = 0;
+
+    // Tính toán số cách di chuyển
+    for (int i = 1; i <= k; i++) {
+        // Tính số cách di chuyển từ đỉnh
+        dp[i][0] = (dp[i-1][0] + 2 * dp[i-1][1]) % MOD;
+
+        // Tính số cách di chuyển từ đáy
+        dp[i][1] = (dp[i-1][1] + dp[i-1][0]) % MOD;
+    }
+
+    // Kết quả là số cách di chuyển sau k bước đi ở trạng thái đỉnh
+    return dp[k][0];
+}
+
+int main() {
+    int n;
+    long long k;
+    cin >> n >> k;
+
+    // Gọi hàm và in kết quả
+    int result = countWays(n, k);
+    cout << result << endl;
+
+    return 0;
+}
