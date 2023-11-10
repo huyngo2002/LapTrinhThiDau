@@ -1,0 +1,791 @@
+=========================================================
+HTML Helpers
+=========================================================
+Danh sách các Standard HTML Helpers trong ASP.NET MVC 5
+1. @Html.Label
+2. @Html.TextBox
+3. @Html.Password
+4. @Html.TextArea
+5. @Html.CheckBox
+6. @Html.RadioButton
+7. @Html.DropDownList
+8. @Html.ListBox
+9. @Html.Hidden
+10. @Html.Display
+11. @Html.Editor
+12. @Html.ActionLink
+13. @Html.BeginForm
+Cách sử dụng:
+@Html.Label("User Name ") //Server đọc xử lý và trả về Client (output) là HTML
+Output:
+<label for="User_Name">User Name </label> 
+-----------------------------------------------------------------------
+@Html.TextBox("txtUserName")
+Output:
+<input id="txtUserName" name="txtUserName" type="text" value="" />
+-----------------------------------------------------------------------
+@Html.Hidden("EmployeeId")
+Output:
+<input id="EmployeeId" name="EmployeeId" type="hidden" value="" />
+-----------------------------------------------------------------------
+@Html.Password("Password"}
+Output:
+<input id="Password" name="Password" type="password" value="" />
+-----------------------------------------------------------------------
+@Html.TextArea("Address")
+Output
+<textarea cols="20" id="Address" name="Address" rows="2"/> 
+-----------------------------------------------------------------------
+@Html.CheckBox("Cricket", true)
+@Html.CheckBox("Dancing")
+Output:
+<input checked="checked" id="Cricket" name="Cricket" type="checkbox"
+value="true">
+<input id="Dancing" name="Dancing" type="checkbox" value="false"> 
+-----------------------------------------------------------------------
+@Html.RadioButton("Gender", "Male", true) Male
+@Html.RadioButton("Gender", "Female", false) Female
+Output:
+<input checked="checked" id="male" name="Gender" type="radio" value="Male">
+
+<input id="female" name="Gender" type="radio" value="Female">
+-----------------------------------------------------------------------
+@{
+IEnumerable<string> strList = new List<string> { "BCA", "BCS", "MCA", "MCS"
+};
+}
+@Html.DropDownList("ddlCourse", new SelectList(strList, strList.FirstOrDefa
+ult()), "--Select Course--")
+Output:
+<select id="ddlCourse" name="ddlCourse">
+<option value="">--Select Course--</option> 
+<option selected="selected">BCA</option>
+<option>BCS</option>
+<option>MCA</option>
+<option>MCS</option>
+</select>
+-----------------------------------------------------------------------
+@Html.ListBox("Select Skills",new List<SelectListItem> {
+new SelectListItem{Text= "C#",Value="1"},
+new SelectListItem{ Text="ASP.NET",Value="2" },
+new SelectListItem{ Text="ASP.NET Core",Value="3" },
+new SelectListItem{ Text="Azure",Value="4" }
+})
+Output:
+<select id="Select_Skills" multiple="multiple" name="Select Skills">
+<option value="1">C#</option>
+<option value="2">ASP.NET</option>
+<option value="3">ASP.NET Core</option>
+<option value="4">Azure</option>
+</select>
+-----------------------------------------------------------------------
+@Html.ActionLink("Go to About",Home, About)
+Output:
+<a href="/Home/About">Go to About</a>
+-----------------------------------------------------------------------
+@using (Html.BeginForm("Index", "Home", FormMethod.Post))
+{
+// Code here..
+}
+Output:
+<form action="Home/Index" method="post">
+</form>
+-----------------------------------------------------------------------
+Tạo file SudentRegistrationController.cs:
+public class StudentRegistrationController : Controller
+    {
+        // GET: StudentRegistration
+        public ActionResult Index()
+        {
+            return View();
+        }
+}
+Tạo view cho phương thức Index() 
+
+@{
+    ViewBag.Title = "Index";
+}
+
+@{ 
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width"/>
+    <title>Index</title>
+</head>
+<body>
+    <div>
+        <h2>Student Registration Form</h2>
+        @using (Html.BeginForm("Regis2", "StudentRegistration"))
+            {
+    <table border="1" style="border-collapse" cellpadding="5">
+        <tr>
+            <td>@Html.Label("Student Name")</td>
+            <td>@Html.TextBox("name")</td>
+        </tr>
+        <tr>
+            <td>@Html.Label("Gender")</td>
+            <td>
+                @Html.RadioButton("gender", "Male") Male
+                @Html.RadioButton("gender", "Female") Female
+            </td>
+        </tr>
+        <tr>
+            <td>@Html.Label("Email")</td>
+            <td>@Html.TextBox("email")</td>
+        </tr>
+        <tr>
+            <td>@Html.Label("Address")</td>
+            <td>
+                @{
+                    IEnumerable<string> strList = new List<string>
+                                        { "Hanoi", "Danang", "tpHCM"};
+                }
+                @Html.DropDownList("addr",
+               new SelectList(strList, strList.FirstOrDefault()), "--Select--")
+            </td>
+        </tr>
+        <tr>
+            <td>@Html.Label("Subjects")</td>
+            <td>
+                @Html.CheckBox("Java core") Java Core
+                @Html.CheckBox("SQL Server") SQL Server
+                @Html.CheckBox("PHP")PHP
+            </td>
+        </tr>
+        <tr>
+            <td>@Html.Label("Username")</td>
+            <td>@Html.TextBox("username")</td>
+        </tr>
+        <tr>
+            <td>@Html.Label("Password")</td>
+            <td>@Html.TextBox("password")</td>
+        </tr>
+        <tr>
+            <td>@Html.Label("Comment")</td>
+            <td>@Html.TextBox("comment")</td>
+        </tr>
+        <tr>
+            <td><input type="submit" value="Regis" /></td>
+            <td><input type="reset" value="Cancel" /></td>
+        </tr>
+    </table>
+            }
+    </div>
+</body>
+</html>
+Tạo file Student.cs:
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+
+namespace Bai5_ViDu2.Models
+{
+    public class Student
+    {
+        public string name { get; set; }
+        public string gender { get; set; }
+        public string email { get; set; }
+        public string addr { get; set; }
+        public string subjects { get; set; }
+        public string username { get; set; }
+        public string password { get; set; }
+        public string comment { get; set; }
+    }
+}
+Quay trở lại file StudentRegistrationController.cs, thêm phương thức
+using Proj_LayoutDemo.Models;
+public ActionResult Regis(Student s)
+ {
+ return View(s);
+ }
+
+Biến Student s sẽ tự động lấy thông tin từ form chuyển sang controller và chuyển
+tiếp tới view Regis.cshtml.
+
+Tạo view Regis và lựa chọn như hình:
+View name: Regis
+Template: Details
+Model class: Student
+Option: bỏ hết
+MVC tự sinh View tương ứng với Model, code View là các HTML Helpers dạng hiển
+thị như sau: (Regis.cshtml)
+Chúng ta thấy mục subject không nhận được giá trị bởi đây là các check box có tên
+khác nhau bên trang view.
+Muốn nhận được giá trị của checkbox, ta cần thay đổi code trong file controller: Tạo
+thêm ActionResult Regis2, truyền tham số là FormCollection:
+public ActionResult Regis2(FormCollection f)
+        {
+            Student s = new Student();
+            s.name = f["name"];
+            s.gender = f["gender"];
+            s.email = f["email"];
+            s.addr = f["addr"];
+            string temp = "";
+            if (f["Java core"] == "true,false")
+                temp = "Java core";
+            if (f["SQL Server"] == "true,false")
+                temp += " " + "SQL Server";
+            if (f["PHP"] == "true,false")
+                temp += " " + "PHP";
+            s.subjects = temp;
+            s.username = f["username"];
+            s.password = f["password"];
+            s.comment = f["comment"];
+            return View("Regis", s);
+        }
+Trong file Index.cshtml, đổi action ở đầu form thành Regis2
+ @using (Html.BeginForm("Regis2", "StudentRegistration"))
+Ta có thể sửa lại View tự sinh Regis.cshtml như sau:
+@model Bai5_ViDu2.Models.Student
+
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Regis</title>
+</head>
+<body>
+    <table border="1" style="border-collapse:collapse" cellpadding="5">
+        <tr>
+            <th style="width:50%">Student Name:</th>
+            <td>@Html.DisplayFor(model => model.name)</td>
+        </tr>
+        <tr>
+            <th>Gender: </th>
+            <td> @Html.DisplayFor(model => model.gender)</td>
+        </tr>
+        <tr>
+            <th>Email: </th>
+            <td> @Html.DisplayFor(model => model.email)</td>
+        </tr>
+        <tr>
+            <th>Address: </th>
+            <td> @Html.DisplayFor(model => model.addr)</td>
+        </tr>
+        <tr>
+            <th>Subjects: </th>
+            <td> @Html.DisplayFor(model => model.subjects)</td>
+        </tr>
+        <tr>
+            <th>User name: </th>
+            <td> @Html.DisplayFor(model => model.username)</td>
+        </tr>
+        <tr>
+            <th>Password: </th>
+            <td> @Html.DisplayFor(model => model.password)</td>
+        </tr>
+        <tr>
+            <th>Comment: </th>
+            <td> @Html.DisplayFor(model => model.comment)</td>
+        </tr>
+    </table>
+    
+    <p>
+        @Html.ActionLink("Edit", "Edit", new { /* id = Model.PrimaryKey */ }) |
+        @Html.ActionLink("Back to List", "Index")
+    </p>
+</body>
+</html>
+
+=========================================================
+Razor
+=========================================================
+
++ Trong HomeController.cs, tạo thêm 1 action Index2:
+ public ActionResult Index2()
+ {
+ return View();
+ }
++ Tạo View Index2.cshtml tương ứng:
+
+
+@{
+    ViewBag.Title = "Index2";
+}
+
+@{ 
+    Layout = null;
+}
+@{ 
+    var total = 0;
+    var totalMessage = "";
+    var num1 = "";
+    var num2 = "";
+    if (IsPost)
+    {
+        num1 = Request["text1"];
+        num2 = Request["text2"];
+        total = num1.AsInt() + num2.AsInt();
+        totalMessage = "Total = " + total;
+    }
+}
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Add Numbers</title>
+        <meta charset="utf-8" />
+        <style type="text/css">
+            body{
+                background-color: beige;
+                font-family:Verdana, Arial;
+                margin:50px;
+            }
+            form {
+                padding: 10px;
+                border-style: solid;
+                width: 250px;
+            }
+        </style>
+    </head>
+    <body>
+        <form action="" method="post">
+            <p>
+                <label for="text1">First Number:</label>
+                <input type="text" name="text1" value="@num1"/>
+            </p>
+            <p>
+                <label for="text2">Second Number:</label>
+                <input type="text" name="text2" value="@num2" />
+            </p>
+            <p><input type="submit" name="PT" value="Add"/></p>
+            <p>@totalMessage</p>
+        </form>
+    </body>
+</html>
+=========================================================
+Tạo layout page
+=========================================================
+Tạo 1 Project ASP.NET MVC với template Empty và chọn Add folder && core references
+đặt tên là ProjLayout
+- Tạo một folder có tên là wwwroot trong ProjLayout và copy các folder css và images
+được cung cấp vào folder này.
+- Tạo một folder có tên là Shared trong View. Kích chuột phải vào thư mục chọn Add, sau
+đó chọn MVC5 Layout Page (Razor)
+- Đặt tên view là _LayoutClient và click nút OK
+- Mở code của file _LayoutClient và sửa như sau:
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>@ViewBag.Title</title>
+    <link href="~/wwwroot/CSS/Style.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+    <div id="page">
+        <div id="header">
+            <div id="logo">
+                <img src="~/wwwroot/images/big_img.jpg" alt="" border="0"/>&nbsp;&nbsp;
+                <a href="">
+                    <img src="~/wwwroot/images/logo.jpg" alt="Nhà sách Minh Sơn" border="0"/>
+                </a>
+            </div>
+            <div id="menung">
+                <ul>
+                    <li>@Html.ActionLink("Trang chủ", "Index", "Home")</li>
+                    <li>@Html.ActionLink("Giới thiệu", "About", "Home")</li>
+                    <li>@Html.ActionLink("Liên hệ", "Contact", "Home")</li>
+                    <li>@Html.ActionLink("Sản phẩm", "Product", "Home")</li>
+                    <li>@Html.ActionLink("Giỏ hàng", "Cart", "Home")</li>
+                </ul>
+            </div>
+        </div>
+        <div id="main">
+            <div id="left">
+                <div id="menud">
+                    <p style="color:blue">Danh mục sách</p>
+                    <ul>
+                        <li>@Html.ActionLink("Ngoại ngữ", "", "")</li>
+                        <li>@Html.ActionLink("Công nghệ thông tin", "", "")</li>
+                        <li>@Html.ActionLink("Luật", "", "")</li>
+                        <li>@Html.ActionLink("Văn học", "", "")</li>
+                        <li>@Html.ActionLink("Khoa học kỹ thuật", "", "")</li>
+                    </ul>
+                </div>
+            </div>
+            <div id="content">
+                @RenderBody()
+            </div>
+        </div>
+        <div id="footer">
+            <p>
+                &copy; Copyright : 2022<br />
+                ASP.NET MVC project
+            </p>
+            <p>
+                Học lập trình <br />
+                Khoa CNTT - ĐHCN Hà Nội <br />
+                Minh Khai, Từ Liêm, Hà Nội
+            </p>
+        </div>
+    </div>
+</body>
+</html>
+- Tạo một Controller chọn mẫu MVC 5 Controller – Empty đặt tên là Home
+- Tạo một view cho action method Index() sử dụng _LayoutClient vừa tạo
+Mở code file Index.cshtml và sửa như sau:
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_LayoutClient.cshtml";
+}
+
+<h2>Nội dung trang chủ</h2>
+Tạo thêm các Action trong HomeController là: About, Contact, Product và Cart
+File CSS:
+* { padding:0;	margin: 0;} 
+body
+{
+	font-size:12px;
+	font-family: Arial, "Times New Roman", Times, serif;
+}
+#page {
+	width:960px;
+    margin:0 auto;	
+	border:1px solid #999;
+	}
+/* Header  */
+#header {width:960px;}
+#header #logo {
+	height:200px;	
+}
+#header #logo a img {
+	margin-top:0px;
+	float:left;
+	width: 230px;}
+#header #logo img {
+	border-style: none;
+	border-width: medium;
+	float:right;}
+
+/* Menu ngang */
+
+#menung {
+	width:940px;
+	height:35px;
+	line-height:35px;/*chiều cao giữa các dòng*/
+	padding-left:20px;
+	color:#FFF;
+	background:url(../images/nav-bg.gif); /* ảnh nền menu */
+	border-top:5px solid #F66D05;/* đường viền cam*/
+}
+#menung ul {
+	font-size:14px;	
+	font-weight:bold;
+	list-style:none;
+}
+#menung ul li {/*hiển thị theo hàng*/
+	float:left;
+}
+#menung ul li a{
+	display:block;
+	color:#FFF;
+	text-decoration:none;
+	padding:0px 15px;	
+	cursor:pointer;	
+}
+#menung ul li a:hover{
+	color:#B7CF1A;
+}
+
+
+/* MAIN  */
+#main {
+	padding:10px 0px;
+	background:#FAFAFA;
+}
+ 
+/* Menu dọc */
+
+#left {
+	float: left;
+	width: 200px;
+	min-height: 600px;
+	font-weight: bold;
+	font-size: 14px;
+}
+#left ul {
+	list-style:none;
+}
+#left ul li a {	
+	display:block;	
+	padding-left:22px;	
+	text-decoration:none;
+	color:#000;
+	border-bottom:2px solid #FFF; /*đường thẳng ngăn các mục chọn */
+}
+
+#left ul li a span {
+    font-weight:normal;
+    color: #666;
+}
+
+#menud a {
+	height:30px;
+	line-height:30px;
+	background:url(../images/list-style.gif) 10px 15px no-repeat #EEE;
+}
+
+#menud ul a:hover{
+            background: #CCFF33;
+        }
+
+#left div {
+	margin-bottom:20px;
+}
+#left img {
+	float:right;
+	border:none;
+}
+#left p {
+	font-weight:bold;
+	padding-left:25px;	
+	line-height:36px;
+	color:#000;	
+	background:url(../images/title.jpg) no-repeat;
+}
+/* Content  */
+#content {
+	float: left;
+	width: 735px;
+	padding: 10px; /* thêm vào khoảng không trên, dưới, trái, phải*/
+	min-height: 600px;
+	border: 1px solid #999;
+}
+
+.name a
+{	 text-decoration:none;}
+
+/* Footer  */
+
+#footer {
+	color:#FFF;
+	width:100%;
+	background:#666;
+	overflow:hidden; 
+	border-top:5px solid #F66D05;/* đường viền cam*/
+}
+#footer p {
+	float:left; 
+	padding:20px 40px;
+	width: 351px;
+}
+
+=========================================================
+Thao tác với file
+=========================================================
+- Tạo 1 Project mới
+- Tạo Controller chọn mẫu Empty Controller, đặt tên Controller là StaffController
+- Tạo View không sử dụng Layout tương ứng với action Index trong controller
+StaffController
++ Code view Index hiển thị Form nhập như sau:
+
+@{
+    ViewBag.Title = "Index";
+}
+<style>
+    #dvPreview1 {height:100px; width:100px}
+</style>
+<h2>Index</h2>
+<h2>
+    STAFF INFORMATION
+</h2>
+<form method="post" name="f1" action="" enctype="multipart/form-data">
+    Staff id: <br /> <input type="text" name="txtID" value="@ViewBag.id"/> <br />
+    Staff Name: <br /> <input type="text" name="txtName" value="@ViewBag.name" /> <br />
+    Date of Birth: <br />
+    <input type="date" name="txtDate" value="@ViewBag.birthday" /> <br />
+    Salary: <br /> <input type="text" name="txtSalary" value="@ViewBag.salary" /><br />
+    Image:<div>
+            <input type="file" name="myfileImage"/> <hr />
+            <b>Live Preview</b> <br />
+            <img src="@ViewBag.image" id="dvPreview1" />
+        </div>
+    <input type="submit" value="Save" formaction="/staff/Save" />
+    <input type="submit" value="Open" formaction="/staff/Open" />
+    <h2>@ViewBag.tb</h2>
+</form>
+Xây dựng Model: đặt tên Staff.cs
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+
+namespace DocGhi_Upload.Models
+{
+    public class Staff
+    {
+        public int txtID {  get; set; }
+        public string txtName { get; set; }
+        public DateTime txtDate { get; set; } 
+        public decimal txtSalary { get; set; }
+        public string _FileName { get; set; }
+    }
+}
+Xây dựng các Action trong StaffController:
+using DocGhi_Upload.Models;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+
+namespace DocGhi_Upload.Controllers
+{
+    public class StaffController : Controller
+    {
+        // GET: Staff
+        public ActionResult Index()
+        {
+            return View();
+        }
+        /*public ActionResult Save (Staff s)
+        {
+            try
+            {
+                var fhinh = Request.Files["myfileImage"];
+                string _FileName = Path.GetFileName(fhinh.FileName);
+                var pathhinh = Server.MapPath("~/Images/" + _FileName);
+                fhinh.SaveAs(pathhinh);
+                string path = Server.MapPath("~/Staffinfo.txt");
+                string[] info = {s.txtID.ToString(),
+                s.txtName,
+                s.txtDate.ToString(),
+                s.txtSalary.ToString(),
+                _FileName};
+                System.IO.File.WriteAllLines(path, info);
+                ViewBag.tb = "Đã lưu thành công!";
+            }catch (Exception ex)
+            {
+                ViewBag.tb = "Đã lưu thất bại!";
+            }
+            
+            return View("Index");
+        }*/
+        public ActionResult Save(FormCollection data)
+        {
+            try
+            {
+                var fhinh = Request.Files["myfileImage"];
+                string _FileName = Path.GetFileName(fhinh.FileName);
+                var pathhinh = Server.MapPath("~/Images/" + _FileName);
+                fhinh.SaveAs(pathhinh);
+                string path = Server.MapPath("~/Staffinfo.txt");
+                string _ID = data["txtID"];
+                string _Name = data["txtName"];
+                DateTime _Date = Convert.ToDateTime(data["txtDate"]);
+                double _Salary = Convert.ToDouble(data["txtSalary"]);
+                string[] info = {_ID,
+                _Name,
+                _Date.ToString(),
+                _Salary.ToString(),
+                _FileName};
+                System.IO.File.WriteAllLines(path, info);
+                ViewBag.tb = "Đã lưu thành công!";
+            }
+            catch (Exception ex)
+            {
+                ViewBag.tb = "Đã lưu thất bại!";
+            }
+
+            return View("Index");
+        }
+        public ActionResult Open(Staff s)
+        {
+            string path = Server.MapPath("~/Staffinfo.txt");
+            string[] info = System.IO.File.ReadAllLines(path);
+            s.txtID = int.Parse(info[0]);
+            s.txtName = info[1];
+            s.txtDate = DateTime.Parse(info[2]);
+            s.txtSalary = decimal.Parse(info[3]);
+            s._FileName = info[4];
+            ViewBag.id = s.txtID;
+            ViewBag.name = s.txtName;
+            ViewBag.birthday = s.txtDate.ToString("yyyy-MM-dd");
+            ViewBag.salary = s.txtSalary;
+            ViewBag.image = "../../Images/" + s._FileName;
+            return View("Index");
+        }
+    }
+}
+=========================================================
+Truyền tham số 
+=========================================================
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using Bai3_1.Models;
+
+namespace Bai3_1.Controllers
+{
+    public class NhapDiemController : Controller
+    {
+        // GET: NhapDiem
+        public ActionResult Index()
+        {
+            return View();
+        }
+        // Cách 1: Truyền tham số cho controller bằng request
+        /*public ActionResult XuLy()
+        {
+            string Ma = Request["Id"];
+            string Ten = Request["Name"];
+            double Diem = Convert.ToDouble(Request["Marks"]);
+            ViewBag.ma = Ma;
+            ViewBag.ten = Ten;
+            ViewBag.diem = Diem;
+            return View();
+        }*/
+        // Cách 2: Truyền tham số từ view sang controller bằng formcollection   
+        /*public ActionResult XuLy(FormCollection data)
+        {
+            string Ma = data["Id"];
+            string Ten = data["Name"];
+            double Diem = Convert.ToDouble(data["Marks"]);
+            ViewBag.ma = Ma;
+            ViewBag.ten = Ten;
+            ViewBag.diem = Diem;
+            return View();
+        }*/
+        // Cách 3: Truyền tham số từ view sang controller bằng tham số của action
+        /*public ActionResult XuLy(string Id="", string Name="", double Marks=0)
+        {
+            ViewBag.ma = Id;
+            ViewBag.ten = Name;
+            ViewBag.diem = Marks;
+            return View();
+        }*/
+        // Cách 4: Truyền tham số từ View sang Controller bằng model
+        public ActionResult XuLy (SinhVien sv)
+        {
+            ViewBag.ma = sv.Id;
+            ViewBag.ten = sv.Name;
+            ViewBag.diem = sv.Marks;
+            return View();
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
