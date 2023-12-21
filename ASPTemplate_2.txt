@@ -1,0 +1,686 @@
+Lưu ý phần sửa có đoạn UpdateModel(query) mà ko được thì đổi sang UpdateModel(db.Tên bảng cần sửa)
+--------------------------------------------------------------------
+ENTITY FRAMEWORK TRONG ASP.NET MVC
+Cài đặt EntityFramework sử dụng NuGet Package Manager
+- Tạo một project đặt tên là BaiTap10, chọn mẫu MVC.
+- Kích chuột phải vào tên project và chọn Manage NuGet Packages để mở cửa
+sổ NuGet Package Manager. (Chú ý máy tính phải nối mạng Internet)
+- Chọn tab Browse, gõ EntityFramework vào thanh tìm kiếm để tìm kiếm
+EntityFramework sau đó kích vào nut Install để cài đặt.
+
+Tạo kết nối với Database
+- Kích chuột phải vào folder Models chọn Add => New item => Data
+=> ADO.NET Entity Model như sau: CSDLDB
+- Chọn Code First from database rồi kích vào nút Next
+- Kích vào New Connection…
+- Nếu thấy cửa sổ này thì chọn Microsoft SQL Server và kích vào nút Continue
+- Chạy SQL Server để lấy server name. Nhập Server name và chọn Database WineStore rồi kích OK
+- Kích Next
+- Chọn Tables và kích Finish
+- Các model được sinh ra tương ứng với các bảng trong Database
+- Mở các fiel WineStoreDB.cs là lớp DBContext, Catalogy.cs và Product.cs là
+các lớp entity để xem code.
+- Mở file Web.config để xem <connectionStrings>
+*** Tùy biến hiển thị tên các property trong các lớp Model và đưa vào các thông báo lỗi
+using System.ComponentModel;
+public partial class Catalogy
+    {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public Catalogy()
+        {
+            Products = new HashSet<Product>();
+        }
+
+        [Key]
+        [StringLength(10)]
+        [Required(ErrorMessage = "Mã danh mục không được để trống!")]
+        public string CatalogyID { get; set; }
+
+        [Required(ErrorMessage = "Tên danh mục không được để trống!")]
+        [StringLength(50)]
+        [DisplayName("Tên danh mục")]
+        public string CatalogyName { get; set; }
+
+        [StringLength(100)]
+        [DisplayName("Mô tả")]
+        public string Description { get; set; }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Product> Products { get; set; }
+    }
+using System.ComponentModel;
+public partial class Product
+    {
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
+        [Key]
+        [DisplayName("Mã rượu")]
+        public int ProductID { get; set; }
+
+        [Required(ErrorMessage = "Tên rượu không được để trống!")]
+        [StringLength(50)]
+        [DisplayName("Tên rượu")]
+        public string ProductName { get; set; }
+
+        [Column(TypeName = "text")]
+        [DisplayName("Mô tả")]
+        public string Description { get; set; }
+
+        [Required(ErrorMessage = "Giá nhập không được để trống!")]
+        [Column(TypeName = "numeric")]
+        [DisplayName("Giá nhập")]
+        public decimal PurchasePrice { get; set; }
+
+        [Required(ErrorMessage = "Giá bán không được để trống!")]
+        [Column(TypeName = "numeric")]
+        [DisplayName("Giá bán")]
+        public decimal Price { get; set; }
+
+        [Required(ErrorMessage = "Số lượng không được để trống!")]
+        [DisplayName("Số lượng")]
+        public int Quantity { get; set; }
+
+        [StringLength(20)]
+        [DisplayName("Năm sản xuất")]
+        public string Vintage { get; set; }
+
+        [Required(ErrorMessage = "Danh mục không được để trống!")]
+        [StringLength(10)]
+        public string CatalogyID { get; set; }
+
+        [Column(TypeName = "text")]
+        [DisplayName("Hình ảnh")]
+        public string Image { get; set; }
+
+        [Required(ErrorMessage = "Vùng không được để trống!")]
+        [StringLength(100)]
+        [DisplayName("Vùng")]
+        public string Region { get; set; }
+
+        public virtual Catalogy Catalogy { get; set; }
+    }
+*** Tạo chức năng CRUD (Thêm, xem, sửa, xóa) cho bảng Catalogy
+- Kích vào Build ReBuild Solution để build lại project (Phải làm trước khi tạo controller)
+- Kích chuột phải vào folder Controllers chọn AddController… Sau đó chọn mẫu MVC 5 Controller with view, using Entity Framework)
+- Chọn model class tương ứng
+Sửa lại phần action link của _Layout.cshtml
+<div class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li>@Html.ActionLink("Home", "Index", "Home")</li>
+                    <li>@Html.ActionLink("Danh mục", "Index", "Catalogies")</li>
+                    <li>@Html.ActionLink("Sản phẩm", "Index", "Products")</li>
+                </ul>
+            </div>
+- Ấn phím F5 (hoặc Ctrl+F5) để chạy thử. Kích vào “Danh mục”
+- Sửa lỗi trong file Index.cshtml phần ActionLink
+	<td>
+            @Html.ActionLink("Edit", "Edit", new { id=item.CatalogyID.Trim() }) |
+            @Html.ActionLink("Details", "Details", new { id=item.CatalogyID.Trim() }) |
+            @Html.ActionLink("Delete", "Delete", new { id=item.CatalogyID.Trim() })
+        </td>
+Ấn phím F5 (hoặc Ctrl+F5) để chạy thử. Kích vào “Danh mục”. Thử các nút
+Create New, Edit, Details, Delete
+ Sửa các nút lệnh thành tiếng Việt
+Tùy chỉnh các chức năng để xử lý lỗi
+ Chạy chức năng của Thêm danh mục.
+o Nhập một danh mục mới với không có tên.
+o Nhập một danh mục mới với mã danh mục trùng với một mã đã có.
+ Sửa lại code trong action method [HttpPost]Create đưa try… catch vào để bẫy lỗi như sau:
+FILE CatalogiesController:
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.Entity;
+using System.Linq;
+using System.Net;
+using System.Web;
+using System.Web.Mvc;
+using BaiTap7.Models;
+
+namespace BaiTap7.Controllers
+{
+    public class CatalogiesController : Controller
+    {
+        private WineStoreDB db = new WineStoreDB();
+
+        // GET: Catalogies
+        public ActionResult Index()
+        {
+            return View(db.Catalogies.ToList());
+        }
+
+        // GET: Catalogies/Details/5
+        public ActionResult Details(string id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            Catalogy catalogy = db.Catalogies.Find(id);
+            if (catalogy == null)
+            {
+                return HttpNotFound();
+            }
+            return View(catalogy);
+        }
+
+        // GET: Catalogies/Create
+        public ActionResult Create()
+        {
+            
+            return View();
+        }
+
+        // POST: Catalogies/Create
+        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
+        // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Create([Bind(Include = "CatalogyID,CatalogyName,Description")] Catalogy catalogy)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    db.Catalogies.Add(catalogy);
+                    db.SaveChanges();
+                }
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Error = "Lỗi nhập dữ liệu!" + ex.Message;
+                return View(catalogy);
+            }
+        }
+
+        // GET: Catalogies/Edit/5
+        public ActionResult Edit(string id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            Catalogy catalogy = db.Catalogies.Find(id);
+            if (catalogy == null)
+            {
+                return HttpNotFound();
+            }
+            return View(catalogy);
+        }
+
+        // POST: Catalogies/Edit/5
+        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
+        // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Edit([Bind(Include = "CatalogyID,CatalogyName,Description")] Catalogy catalogy)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    db.Entry(catalogy).State = EntityState.Modified;
+                    db.SaveChanges();
+                }
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                ViewBag.Error = "Lỗi nhập dữ liệu!" + ex.Message;
+                return View(catalogy);
+            }
+            
+        }
+
+        // GET: Catalogies/Delete/5
+        public ActionResult Delete(string id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            Catalogy catalogy = db.Catalogies.Find(id);
+            if (catalogy == null)
+            {
+                return HttpNotFound();
+            }
+            return View(catalogy);
+        }
+
+        // POST: Catalogies/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public ActionResult DeleteConfirmed(string id)
+        {
+            Catalogy catalogy = db.Catalogies.Find(id);
+            try
+            {
+                db.Catalogies.Remove(catalogy);
+                db.SaveChanges();
+                return RedirectToAction("Index");
+            } catch (Exception ex)
+            {
+                ViewBag.Error = "Không xóa được bản ghi này!" + ex.Message;
+                return View("Delete", catalogy);
+            }
+            
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                db.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+    }
+}
+Trong view Delete.cshtml thêm đoạn code để hiển thị thông báo lỗi như sau: 
+@if(ViewBag.Error != null)
+            {
+                <br/>
+                <div class="alert alert-danger" role="alert">@ViewBag.Error</div>
+            }
+FILE ProductsController
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.Entity;
+using System.Linq;
+using System.Net;
+using System.Web;
+using System.Web.Mvc;
+using BaiTap7.Models;
+
+namespace BaiTap7.Controllers
+{
+    public class ProductsController : Controller
+    {
+        private WineStoreDB db = new WineStoreDB();
+
+        // GET: Products
+        public ActionResult Index()
+        {
+            var products = db.Products.Include(p => p.Catalogy);
+            return View(products.ToList());
+        }
+
+        // GET: Products/Details/5
+        public ActionResult Details(int? id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            Product product = db.Products.Find(id);
+            if (product == null)
+            {
+                return HttpNotFound();
+            }
+            return View(product);
+        }
+
+        // GET: Products/Create
+        public ActionResult Create()
+        {
+            ViewBag.CatalogyID = new SelectList(db.Catalogies, "CatalogyID", "CatalogyName");
+            return View();
+        }
+
+        // POST: Products/Create
+        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
+        // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Create([Bind(Include = "ProductID,ProductName,Description,PurchasePrice,Price,Quantity,Vintage,CatalogyID,Image,Region")] Product product)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    db.Products.Add(product);
+                    db.SaveChanges();
+                }
+                return RedirectToAction("Index");
+            }
+            catch(Exception ex)
+            {
+                ViewBag.Error = "Lỗi nhập dữ liệu! " + ex.Message;
+                ViewBag.CatalogyID = new SelectList(db.Catalogies, "CatalogyID", "CatalogyName", product.CatalogyID);
+                return View(product);
+            }
+        }
+
+        // GET: Products/Edit/5
+        public ActionResult Edit(int? id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            Product product = db.Products.Find(id);
+            if (product == null)
+            {
+                return HttpNotFound();
+            }
+            ViewBag.CatalogyID = new SelectList(db.Catalogies, "CatalogyID", "CatalogyName", product.CatalogyID);
+            return View(product);
+        }
+
+        // POST: Products/Edit/5
+        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
+        // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Edit([Bind(Include = "ProductID,ProductName,Description,PurchasePrice,Price,Quantity,Vintage,CatalogyID,Image,Region")] Product product)
+        {
+            if (ModelState.IsValid)
+            {
+                db.Entry(product).State = EntityState.Modified;
+                db.SaveChanges();
+                return RedirectToAction("Index");
+            }
+            ViewBag.CatalogyID = new SelectList(db.Catalogies, "CatalogyID", "CatalogyName", product.CatalogyID);
+            return View(product);
+        }
+
+        // GET: Products/Delete/5
+        public ActionResult Delete(int? id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            Product product = db.Products.Find(id);
+            if (product == null)
+            {
+                return HttpNotFound();
+            }
+            return View(product);
+        }
+
+        // POST: Products/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public ActionResult DeleteConfirmed(int id)
+        {
+            Product product = db.Products.Find(id);
+            db.Products.Remove(product);
+            db.SaveChanges();
+            return RedirectToAction("Index");
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                db.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+    }
+}
+------------------------------------------------
+Rebuid
+FILE: NVienController
+
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using QLNhanVien.Models;
+
+namespace QLNhanVien.Controllers
+{
+    public class NVienController : Controller
+    {
+        // GET: NVien
+        QLNhanVienDB db = new QLNhanVienDB();
+
+        [HttpGet]
+        public ActionResult Index()
+        {
+            var query = db.NhanViens.Select(p => p);
+            return View(query);
+        }
+        [HttpGet]
+        public ActionResult ChiTiet(string id)
+        {
+            var query = db.NhanViens.Where(m => m.Manv == id).First();
+            return View(query);
+        }
+        [HttpGet]
+        public ActionResult Them()
+        {
+            ViewData["Phong"] = new SelectList(db.Phongs, "Maphong", "Tenphong");
+            return View();
+        }
+        [HttpPost]
+        public ActionResult Them(FormCollection f, NhanVien nv)
+        {
+            var ma = f["Manv"];
+            var ten = f["Hoten"];
+            var phong = f["Phong"];
+            var luong = f["Luong"];
+            if (String.IsNullOrEmpty(ma))
+            {
+                ViewData["Loi1"] = "Mã nhân viên không được để trống!";
+            }
+            else if (String.IsNullOrEmpty(ten))
+            {
+                ViewData["Loi2"] = "Họ tên không được để trống!";
+            }
+            else if (String.IsNullOrEmpty(luong))
+            {
+                ViewData["Loi3"] = "Lương không được để trống!";
+            }
+            else
+            {
+                nv.Manv = ma;
+                nv.Hoten = ten;
+                nv.Maphong = phong;
+                nv.Luong = Convert.ToDouble(luong);
+                db.NhanViens.Add(nv);
+                db.SaveChanges();
+                return RedirectToAction("Index");
+            }
+            return this.Them();
+        }
+
+        [HttpGet]
+        public ActionResult Xoa(string id)
+        {
+            var query = db.NhanViens.First(m => m.Manv == id);
+            return View(query);
+        }
+        [HttpPost]
+        public ActionResult Xoa(string id, FormCollection Data)
+        {
+            var query = db.NhanViens.Where(m => m.Manv == id).First();
+            db.NhanViens.Remove(query);
+            db.SaveChanges();
+            return RedirectToAction("Index");
+        }
+        [HttpGet]
+        public ActionResult Sua(string id)
+        {
+            var query = db.NhanViens.First(m => m.Manv == id);
+            ViewData["Phong"] = new SelectList(db.Phongs, "Maphong", "Tenphong");
+            return View(query);
+        }
+        [HttpPost]
+        public ActionResult Sua(string id, FormCollection f)
+        {
+            var nv = db.NhanViens.First(m => m.Manv == id);
+            var ten = f["Hoten"];
+            var phong = f["Phong"];
+            var luong = f["Luong"];
+            if (String.IsNullOrEmpty(ten))
+            {
+                ViewData["Loi1"] = "Họ tên không được để trống!";
+            }
+            else if (String.IsNullOrEmpty(luong))
+            {
+                ViewData["Loi2"] = "Lương không được để trống!";
+            }
+            else
+            {
+                nv.Hoten = ten;
+                nv.Maphong = phong;
+                nv.Luong = Convert.ToDouble(luong);
+                UpdateModel(nv);
+                db.SaveChanges();
+                return RedirectToAction("Index");
+            }
+            return this.Sua(id);
+        }
+    }
+}
+--------------
+
+@{
+    ViewBag.Title = "Index";
+}
+
+<h3>QUẢN LÝ NHÂN VIÊN</h3>
+<table border="1" style="font-size:14px">
+    <tr>
+        <th>Mã NV</th>
+        <th>Họ tên</th>
+        <th>Phòng</th>
+        <th>Lương</th>
+    </tr>
+    @foreach (var item in Model)
+     {
+        <tr>
+            <td>@item.Manv</td>
+            <td>@item.Hoten</td>
+            <td>@item.Maphong</td>
+            <td>@item.Luong</td>
+            <td>
+                @Html.ActionLink("Sửa", "Sua", new {id = item.Manv.Trim()})|
+                @Html.ActionLink("Chi tiết", "ChiTiet", new {id = item.Manv.Trim()})|
+                @Html.ActionLink("Xóa", "Xoa", new {id = item.Manv.Trim()})
+            </td>
+        </tr>     
+     }
+</table>
+@Html.ActionLink("Thêm mới", "Them", "NVien")
+-----------------
+
+@{
+    ViewBag.Title = "ChiTiet";
+}
+
+<h2>XEM CHI TIẾT</h2>
+<fieldset>
+    <div>Mã nhân viên: @Model.Manv</div>
+    <div>Họ tên: @Model.Hoten</div>
+    <div>Phòng: @Model.Maphong</div>
+    <div>Lương: @Model.Luong</div>
+</fieldset>
+<br/>
+@using (Html.BeginForm())
+{
+    <p>
+        @Html.ActionLink("Sửa", "Sua", new {id = Model.Manv.Trim()}) |
+        @Html.ActionLink("Xóa", "Xoa", new {id = Model.Manv.Trim()}) |
+        @Html.ActionLink("Về danh sách", "Index") 
+    </p>
+}
+------------------------
+
+@{
+    ViewBag.Title = "Sua";
+}
+
+<h2>SUA NHAN VIEN</h2>
+<table>
+    @using (Html.BeginForm())
+    {
+        @Html.ValidationSummary(true)
+        <tr style="height:40px">
+            <td>Mã nhân viên:</td>
+            <td>@Html.TextBox("Hoten")<font color="red">@ViewData["Loi1"]</font></td>
+        </tr>
+        <tr style="height:40px">
+            <td>Tên phòng:</td>
+            <td>@Html.DropDownList("Phong")</td>
+        </tr>
+        <tr style="height:40px">
+            <td>Luơng:</td>
+            <td>@Html.TextBox("Luong")<font color="red">@ViewData["Loi2"]</font></td>
+        </tr>
+        <tr style="height:40px">
+            <td colspan="2" style="text-align:center">
+                <input type="submit" value="Lưu" />|
+                @Html.ActionLink("Về danh sách", "Index")
+            </td>
+        </tr>
+    }
+</table>
+---------------
+
+@{
+    ViewBag.Title = "Them";
+}
+
+<h2>THEM NHAN VIEN</h2>
+<table>
+    @using (Html.BeginForm())
+    {
+        @Html.ValidationSummary(true)
+        <tr style="height:40px">
+            <td>Mã nhân viên:</td>
+            <td>@Html.TextBox("Manv")<font color="red">@ViewData["Loi1"]</font></td>
+        </tr>
+        <tr style="height:40px">
+            <td>Họ tên:</td>
+            <td>@Html.TextBox("Hoten")<font color="red">@ViewData["Loi2"]</font></td>
+        </tr>
+        <tr style="height:40px">
+            <td>Tên phòng:</td>
+            <td>@Html.DropDownList("Phong")</td>
+        </tr>
+        <tr style="height:40px">
+            <td>Luơng:</td>
+            <td>@Html.TextBox("Luong")<font color="red">@ViewData["Loi3"]</font></td>
+        </tr>
+        <tr style="height:40px">
+            <td colspan="2" style="text-align:center">
+                <input type="submit" value="Thêm"/>|
+                @Html.ActionLink("Về danh sách", "Index")
+            </td>
+        </tr>
+    }
+</table>
+----------------------
+
+@{
+    ViewBag.Title = "Xoa";
+}
+
+<h2>XOA NHAN VIEN</h2>
+<fieldset>
+    <div>Mã nhân viên: @Model.Manv</div>
+    <div>Họ tên: @Model.Hoten</div>
+    <div>Phòng: @Model.Maphong</div>
+    <div>Lương: @Model.Luong</div>
+</fieldset>
+<br />
+@using (Html.BeginForm())
+            {
+                <p>
+                    <input type="submit" value="Xóa"/>
+                    @Html.ActionLink("Về danh sách", "Index")
+                </p>
+            }
+----------------------------------
+<div class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li>@Html.ActionLink("Home", "Index", "Home")</li>
+                    <li>@Html.ActionLink("Xem nhân viên", "Index", "NVien")</li>
+                </ul>
+            </div>
