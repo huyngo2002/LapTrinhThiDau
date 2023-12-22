@@ -684,3 +684,71 @@ namespace QLNhanVien.Controllers
                     <li>@Html.ActionLink("Xem nhân viên", "Index", "NVien")</li>
                 </ul>
             </div>
+----------------------------------------------------------------------------------
+Sắp xếp
+public ActionResult Index(){
+	var sp = db.Products.Select(p => p);
+	return View(sp.ToList());
+}
+public ActionResult Index(string sortOrder) {
+	ViewBag.SapTheoTen = String.IsNullOrEmpty(sortOrder) ? "ten_desc":"";
+	ViewBag.SapTheoGia = sortOrder == "gia" : "gia_desc" : "gia";
+	var sp = db.Products.Select(p=>p);
+	switch(sortOrder) {
+		case "ten_desc":
+		sp = sp.OrderByDescending(s => s.ProductName);
+			break;
+		case "gia":
+		sp = sp.OrderBy(s => s.Price);
+			break;
+		case "gia_desc":
+		sp = sp.OrderByDescending(s => s.Price);
+			break;
+		default:
+		sp = sp.OrderBy(s => s.ProductName);
+			break;
+	}
+	return View(sp.ToList());
+}
+Index.cshtml
+....
+<th>
+	@Html.ActionLink("Ten hang", "Index", new {sortOder = ViewBag.SapTheoTen})
+</th>
+<th>
+	@Html.ActionLink("Gia", "Index", new {sortOder = ViewBag.SapTheoGia})
+</th>
+....
+-----------------------------------------
+Tim kiem
+public ActionResult Index(string sortOrder, string searchString) {
+	ViewBag.SapTheoTen = String.IsNullOrEmpty(sortOrder) ? "ten_desc":"";
+	ViewBag.SapTheoGia = sortOrder == "gia" : "gia_desc" : "gia";
+	var sp = db.Products.Select(p=>p);
+	if (!String.IsNullOrEmpty(searchString)){
+		sp = sp.Where(p=>p.ProductName.Contains(searchString));
+	}
+	switch(sortOrder) {
+		case "ten_desc":
+		sp = sp.OrderByDescending(s => s.ProductName);
+			break;
+		case "gia":
+		sp = sp.OrderBy(s => s.Price);
+			break;
+		case "gia_desc":
+		sp = sp.OrderByDescending(s => s.Price);
+			break;
+		default:
+		sp = sp.OrderBy(s => s.ProductName);
+			break;
+	}
+	return View(sp.ToList());
+}
+----------------------
+Index.cshtml
+@using (Html.BeginForm()) {
+	<p>
+		Tim mat hang: @Html.TextBox("SearchString");
+		<input type="submit" value="Tim"/>
+	</p>
+}
