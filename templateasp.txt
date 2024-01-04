@@ -1,0 +1,414 @@
+- Sử dụng SQL Server, chạy script đã cho để tạo csdl QLNV gồm 2 bảng:
+Phong(Maphong, Tenphong)
+NhanVien(Manv, Hoten, Matkhau, Tuoi, Diachi, Luong, Maphong)
+Câu 1: Thực hiện các yêu cầu sau:
+ Tạo một project đặt tên là Pro_OnTap, chọn mẫu MVC.
+ Cài đặt EntityFramework sử dụng NuGet Package Manager
+ Sử dụng EF code first để kết nối với CSDL QLNV (đặt tên ADO.NET Entity Model là ModelDB)
+chọn tất cả các bảng trong CSDL.
+Câu 2: Tạo một Controller mới từ MVC5 Controller with view, using Entity Framework, đặt tên là
+NhanvienController, sử dụng bảng NhanVien
+ Kích ReBuild Solution để build lại project (mỗi khi sửa model cần Rebuild lại hệ thống)
+ Tạo một controller theo mẫu MVC 5 Controller with view, using EntityFramework gắn với model
+NhanVien.
+-----------------------------------------------------------------------
+File: RouteConfig.cs
+-----------------------------------------------------------------------
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using System.Web.Routing;
+
+namespace OnTap
+{
+    public class RouteConfig
+    {
+        public static void RegisterRoutes(RouteCollection routes)
+        {
+            routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
+            routes.MapMvcAttributeRoutes();
+
+            routes.MapRoute(
+                name: "Default",
+                url: "{controller}/{action}/{id}",
+                defaults: new { controller = "NhanVien", action = "Index", id = UrlParameter.Optional }
+            );
+        }
+    }
+}
+-----------------------------------------------------------------------------------------------
+File _Layout.cshtml
+-----------------------------------------------------------------------------------------------
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - My ASP.NET Application</title>
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+</head>
+<body>
+    <div>
+        <center>
+            @Html.ActionLink("Xem danh sách", "Index", "NhanVien")<label>&nbsp;|&nbsp;</label>
+            @{ Html.RenderAction("CategoryMenu", "NhanVien");}
+            @{if (Session["ma"] == null)
+                {
+                    <a href="/NhanVien/Login">Login</a>
+                } else
+            {
+                <label>Chúc mừng bạn &nbsp;</label><b>@Session["ma"]</b><label>&nbsp;|&nbsp;</label>
+                <a href="/NhanVien/Logout">Logout</a>
+            }
+            }
+        </center>
+    </div>
+    <div class="container body-content">
+        @RenderBody()
+        <hr />
+        <footer>
+            <p>&copy; @DateTime.Now.Year - My ASP.NET Application</p>
+        </footer>
+    </div>
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @RenderSection("scripts", required: false)
+</body>
+</html>
+-----------------------------------------------------------------------------------------------
+File NhanVienController
+-----------------------------------------------------------------------------------------------
+using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.Entity;
+using System.Linq;
+using System.Net;
+using System.Web;
+using System.Web.Mvc;
+using OnTap.Models;
+
+namespace OnTap.Controllers
+{
+    public class NhanVienController : Controller
+    {
+        private ModelDB db = new ModelDB();
+
+        // GET: NhanVien
+        public ActionResult Index()
+        {
+            var nhanViens = db.NhanViens.Include(n => n.Phong);
+            return View(nhanViens.ToList());
+        }
+        public ActionResult CategoryMenu()
+        {
+            var li = db.Phongs.ToList();
+            return PartialView(li);
+        }
+        [Route("NhanVienTheoPhong/{MaPhong}")]
+        public ActionResult HienThiTheoPhong(int Maphong)
+        {
+                var li = db.NhanViens.Where(e=>e.Maphong== Maphong).ToList();   
+            return View(li);
+        }
+        public ActionResult Login()
+        {
+            return View();
+        }
+        [HttpPost]
+        public ActionResult Login(string ma, string password)
+        {
+            var user = db.NhanViens .Where(n => n.Manv.ToString() == ma && n.Matkhau == password).FirstOrDefault();
+            if (user == null)
+            {
+                ViewBag.errorLogin = "Sai mã hoặc mật khẩu";
+                return View("Login");
+            } else
+            {
+                Session["ma"] = ma;
+                return RedirectToAction("Index", "NhanVien");
+            }
+        }
+        public ActionResult Logout()
+        {
+            Session["ma"] = null;
+            return RedirectToAction("Index", "NhanVien");
+        }
+        // GET: NhanVien/Details/5
+        public ActionResult Details(int? id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            NhanVien nhanVien = db.NhanViens.Find(id);
+            if (nhanVien == null)
+            {
+                return HttpNotFound();
+            }
+            return View(nhanVien);
+        }
+
+        // GET: NhanVien/Create
+        public ActionResult Create()
+        {
+            ViewBag.Maphong = new SelectList(db.Phongs, "Maphong", "Tenphong");
+            return View();
+        }
+
+        // POST: NhanVien/Create
+        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
+        // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
+        /* [HttpPost]
+         [ValidateAntiForgeryToken]
+         public ActionResult Create([Bind(Include = "Manv,Hoten,Matkhau,Tuoi,Diachi,Luong,Maphong")] NhanVien nhanVien)
+         {
+             if (ModelState.IsValid)
+             {
+                 db.NhanViens.Add(nhanVien);
+                 db.SaveChanges();
+                 return RedirectToAction("Index");
+             }
+
+             ViewBag.Maphong = new SelectList(db.Phongs, "Maphong", "Tenphong", nhanVien.Maphong);
+             return View(nhanVien);
+         }
+ */
+        [HttpPost]
+        public ActionResult Create(NhanVien nv)
+        {
+            try
+            {
+                db.NhanViens.Add(nv);
+                db.SaveChanges();
+                return Json(new { result = true, JsonRequestBehavior.AllowGet });
+            } catch(Exception ex)
+            {
+                return Json(new { result = false, error = ex.Message });
+            }
+        }
+        // GET: NhanVien/Edit/5
+        public ActionResult Edit(int? id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            NhanVien nhanVien = db.NhanViens.Find(id);
+            if (nhanVien == null)
+            {
+                return HttpNotFound();
+            }
+            ViewBag.Maphong = new SelectList(db.Phongs, "Maphong", "Tenphong", nhanVien.Maphong);
+            return View(nhanVien);
+        }
+
+        // POST: NhanVien/Edit/5
+        // To protect from overposting attacks, enable the specific properties you want to bind to, for 
+        // more details see https://go.microsoft.com/fwlink/?LinkId=317598.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Edit([Bind(Include = "Manv,Hoten,Matkhau,Tuoi,Diachi,Luong,Maphong")] NhanVien nhanVien)
+        {
+            if (ModelState.IsValid)
+            {
+                db.Entry(nhanVien).State = EntityState.Modified;
+                db.SaveChanges();
+                return RedirectToAction("Index");
+            }
+            ViewBag.Maphong = new SelectList(db.Phongs, "Maphong", "Tenphong", nhanVien.Maphong);
+            return View(nhanVien);
+        }
+
+        // GET: NhanVien/Delete/5
+        public ActionResult Delete(int? id)
+        {
+            if (id == null)
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+            NhanVien nhanVien = db.NhanViens.Find(id);
+            if (nhanVien == null)
+            {
+                return HttpNotFound();
+            }
+            return View(nhanVien);
+        }
+
+        // POST: NhanVien/Delete/5
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public ActionResult DeleteConfirmed(int id)
+        {
+            NhanVien nhanVien = db.NhanViens.Find(id);
+            db.NhanViens.Remove(nhanVien);
+            db.SaveChanges();
+            return RedirectToAction("Index");
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                db.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+    }
+}
+-----------------------------------------------------------------------------------------------
+File Login.cshtml
+-----------------------------------------------------------------------------------------------
+
+@{
+    ViewBag.Title = "Login";
+}
+
+<h2>Login</h2>
+<div class="login">
+    <div class="input">
+        @using (Html.BeginForm())
+            {
+                <p><label>Mã nhân viên:</label> <input type="text" name="ma"/></p>
+                <p><label>Mật khẩu:</label> <input type="text" name="password"/></p>
+                <p><input class="lg" type="submit" value="Login"/></p>
+            }
+    </div>
+    @ViewBag.errorLogin
+</div>
+-----------------------------------------------------------------------------------------------
+File Create.cshtml
+-----------------------------------------------------------------------------------------------
+@model OnTap.Models.NhanVien
+
+@{
+    ViewBag.Title = "Create";
+}
+
+<h2>Create</h2>
+
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-horizontal">
+        <h4>NhanVien</h4>
+        <hr />
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+        <div class="form-group">
+            @Html.LabelFor(model => model.Hoten, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Hoten, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Hoten, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Matkhau, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Matkhau, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Matkhau, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Tuoi, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Tuoi, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Tuoi, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Diachi, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Diachi, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Diachi, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Luong, htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.EditorFor(model => model.Luong, new { htmlAttributes = new { @class = "form-control" } })
+                @Html.ValidationMessageFor(model => model.Luong, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            @Html.LabelFor(model => model.Maphong, "Maphong", htmlAttributes: new { @class = "control-label col-md-2" })
+            <div class="col-md-10">
+                @Html.DropDownList("Maphong", null, htmlAttributes: new { @class = "form-control" })
+                @Html.ValidationMessageFor(model => model.Maphong, "", new { @class = "text-danger" })
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                @*<input type="submit" value="Create" class="btn btn-default" />*@
+                <input type="button" name="submitButton" id="btnSave" value="Save" />
+            </div>
+        </div>
+    </div>
+}
+
+<div>
+    @Html.ActionLink("Back to List", "Index")
+</div>
+<div id="msg" style="color:red"></div>
+@section Scripts {
+    @*@Scripts.Render("~/bundles/jqueryval")*@
+<script type="text/javascript">
+$(function () {
+    $("#btnSave").click(function () {
+            var nv = {};
+            nv.Hoten = $("#Hoten").val();
+            nv.Matkhau = $("#Matkhau").val();
+            nv.Tuoi = $("#Tuoi").val();
+            nv.Diachi = $("#Diachi").val();
+            nv.Luong = $("#Luong").val();
+            nv.Maphong = $("#Maphong").val();
+            $.ajax({
+                type: "POST",
+                url: '@Url.Action("/Create")',
+                data: '{nv: ' + JSON.stringify(nv) + '}',
+                dataType: "json",
+                contentType: "application/json; charset=utf-8",
+                success: function (response) {
+                    if (response.result == true) {
+                        $("#msg").html('Thêm thành công!');
+                    }
+                    else {
+                        $("#msg").html('Thêm thất bại!');
+                    }
+                },
+            });
+            return false;
+        });
+    
+});
+</script>
+}
+-----------------------------------------------------------------------------------------------
+Tạo View hiển thị DS nhân viên theo phòng ban: HienThiTheoPhong.cshtml
++ ViewName: HienThiTheoPhong
++ Template: List
++ Model class: NhanVien
++ Data context: ...
++ Bỏ tích create par..
+
+Tạo PartialView: click chuột phải vào CategoryMenu(), chọn Add View:
+File CategoryMenu.cshtml:
+
+@model IEnumerable<OnTap.Models.Phong>
+@foreach (var item in Model)
+{
+    var url = "/NhanVienTheoPhong/" + item.Maphong;
+                <a href="@url"> @item.Tenphong</a> <label>&nbsp;|&nbsp;</label>
+            }
+-----------------------------------------------------------------------------------------------
